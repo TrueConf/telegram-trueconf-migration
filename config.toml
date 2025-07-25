@@ -1,0 +1,30 @@
+telegram_export_dir = ""
+
+[server]
+address = "" # IP or domain.name
+verify_ssl = false # or true if needed
+access_token = "" # If you don't use access_token enter `client_id` and `client_secret`
+client_id = ""
+client_secret = ""
+
+
+[chat]
+name = ""
+type = "" # available: personal, group, channel
+owner = "" # who created chat
+
+[chat.datetime]
+view_original_time_in_message = false # or true if needed
+timezone = "GMT" # need if view_original_time_in_message = true
+caption = "" # example: f"{caption}{dt}"
+
+
+[chat.voice_message]
+convert_voice_message_to_video = false
+cover_image = "cover/en.png" # by default "cover/en.png"
+
+[registration]
+auto = false # or true if needed
+email_domain = "" # If it does not exist, the external server name will be substituted.
+default_password = ""
+
