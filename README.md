@@ -448,4 +448,4 @@ For `group` and `channel` chats, each run of the script will create a new chat i
 
 If the migration is successful, you will see a copy of the Telegram chat:
 
-![](/assets/migration_example_en.mp4)
+🎬 [Watch on YouTube](https://youtu.be/D52e83ABdz0)

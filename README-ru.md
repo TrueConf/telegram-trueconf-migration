@@ -445,5 +445,5 @@ pipenv run python build_chat.py
 
 В случае успешного переноса у вас появится копия чата Telegram:
 
-![](/assets/migration_example_ru.mp4) 
+🎬 [Посмотреть видео на YouTube](https://youtu.be/Vvz_ZpuO3DU)
 
