@@ -6,13 +6,11 @@
     </picture>
   </a>
 </p>
-
 <h1 align="center">🛡️ Secure Chat Migration from Telegram to TrueConf</h1>
 
 <p align="center">Need a secure messenger without restrictions?
 Easily migrate all your chats from Telegram to TrueConf in just a few clicks.
 Migration is supported only in the on-premise versions of <a href="https://trueconf.com/products/server/video-conferencing-server.html">TrueConf Server</a> / <a href="https://trueconf.com/products/enterprise/trueconf-enterprise.html">TrueConf Enterprise</a>.</p>
-
 <p align="center">
      <a href="https://pypi.org/project/python-trueconf-bot" target="_blank">
       <img alt="PyPI - Version" src="https://img.shields.io/pypi/v/python-trueconf-bot?label=python-trueconf-bot">
@@ -24,11 +22,9 @@ Migration is supported only in the on-premise versions of <a href="https://truec
         <img src="https://img.shields.io/badge/whatsapp-commiunity-gree?style=flat-square&logo=whatsapp" />
     </a>
 </p>
-
 <p align="center">
   <img src="/assets/head_en.png" alt="Telegram and TrueConf" width="800" height="auto">
 </p>
-
 <p align="center">
   <a href="./README.md">English</a> /
   <a href="./README-ru.md">Русский</a>
@@ -45,10 +41,10 @@ To migrate your chats from Telegram to TrueConf you need to:
 
 You will also need:
 
-* [Telegram Desktop](https://desktop.telegram.org/) installed;
-* a deployed [TrueConf Server](https://trueconf.com/products/tcsf/trueconf-server-free.html) version 5.5 or higher ([documentation](https://trueconf.com/docs/server/en/admin/server-part/));
-* Python 3.11 or higher installed;
-* a little patience.
+- [Telegram Desktop](https://desktop.telegram.org/) installed;
+- a deployed [TrueConf Server](https://trueconf.com/products/tcsf/trueconf-server-free.html) version 5.5 or higher ([documentation](https://trueconf.com/docs/server/en/admin/server-part/));
+- Python 3.11 or higher installed;
+- a little patience.
 
 ## Downloading the Repository and Setting up the Environment
 
@@ -103,11 +99,11 @@ To export history:
 
 3. In the export settings window:
 
-   * select the media you want;
-   * set file size limits;
-   * choose **JSON** as the format;
-   * select the save path or leave default `Downloads/Telegram Desktop/`;
-   * configure the date range.
+   - select the media you want;
+   - set file size limits;
+   - choose **JSON** as the format;
+   - select the save path or leave default `Downloads/Telegram Desktop/`;
+   - configure the date range.
 
 <p align="center"><img width=400px src="assets/export_setting_window_en.png"></p>
 
@@ -137,7 +133,6 @@ access_token = "" # If you don't use access_token enter `client_id` and `client_
 client_id = ""
 client_secret = ""
 
-
 [chat]
 name = ""
 type = "" # available: personal, group, channel
@@ -147,7 +142,6 @@ owner = "" # who created chat
 view_original_time_in_message = false # or true if needed
 timezone = "GMT" # need if view_original_time_in_message = true
 caption = "" # example: f"{caption}{dt}"
-
 
 [chat.voice_message]
 convert_voice_message_to_video = false
@@ -199,15 +193,16 @@ For a successful migration, you need to fill in the configuration file according
 |                     | telegram_id, type              | Numeric Telegram ID and user type (`user`,`channel`). Automatically filled by `parse_users.py`.                                                                                                                                       |
 |                     | access_token                   | User authorization token in TrueConf Chatbot Connector (*TTL = 1 month*). Required for chat migration. If not specified, `password` will be used instead.                                                                             |
 
-> [!TIP] So many parameters to fill out 🤯?
+> [!TIP]
+> **So many parameters to fill out 🤯?**
 > Actually – no. To simplify this process, we have prepared scripts, as described below.
 
 ### Automatic User Collection
 
 If a Telegram chat has a large number of participants, filling out the config file can be frustrating \:cry:. Therefore, the TrueConf team prepared the script [parse\_users.py](parse_users.py) to automatically populate the `[users]` section.
 
-> [!NOTE] What does the script do?
-> It analyzes the `result.json` file (from the export) and generates a list of users.
+> [!NOTE]
+> **What does the script do?** It analyzes the `result.json` file (from the export) and generates a list of users.
 
 1. In `config.toml`, specify the path to the folder with the exported chat:
 
@@ -232,7 +227,7 @@ If a Telegram chat has a large number of participants, filling out the config fi
    ```toml
    [users]
 
-   [users.ivanov_ivan]
+   [users.john_doe]
 
    access_token = ""
    telegram_id = "12345678"
@@ -250,7 +245,6 @@ default_password = "12345678" # Optional (see description)
 
 and restart the script.
 
-
 ### Automatic User Registration in TrueConf Server
 
 To migrate chats from Telegram to TrueConf, all users participating in the conversation must be registered on the TrueConf Server.
@@ -265,8 +259,8 @@ Before running the script, make sure all the data in the `[users]` block meets y
 [users.<trueconf_id>]
 
 # Example:
-[users.joe_brown]
-display_name = "Joe Brown"
+[users.john_doe]
+display_name = "John Doe"
 password = "verystrongpassword1357"
 ```
 
@@ -294,7 +288,7 @@ Error:
 
 ### Editing the `[users]` Section for Existing Infrastructure
 
-> \[!IMPORTANT]
+> [!IMPORTANT]
 > This section should be reviewed by administrators **only** if users are already registered in TrueConf Server. Before performing these steps, complete the Automatic User Collection section.
 
 To ensure a successful migration, you need to match Telegram users with TrueConf Server users. For each user, configure the `[users]` block as follows:
@@ -305,13 +299,13 @@ To ensure a successful migration, you need to match Telegram users with TrueConf
    [users.<trueconf_id>]
 
    # Example:
-   [users.joe] -> [users.joe_brown]
+   [users.john] -> [users.john_doe]
    ```
 
 2. Provide the `access_token`:
 
    ```toml
-   [users.joe_brown]
+   [users.john_doe]
    access_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
    ```
 
@@ -393,9 +387,9 @@ owner = "sherlock" # who created chat
 By default, TrueConf Server does not allow sending messages retroactively.
 If you want to preserve the original date and time of messages, adjust the following settings:
 
-* set `view_original_time_in_message` to `true`;
-* configure the time zone, e.g., `Europe/London`;
-* optionally, add a `caption` before the date and time. Make sure to leave a **space** at the end of the string.
+- set `view_original_time_in_message` to `true`;
+- configure the time zone, e.g., `Europe/London`;
+- optionally, add a `caption` before the date and time. Make sure to leave a **space** at the end of the string.
 
 ```toml
 [chat.datetime]
