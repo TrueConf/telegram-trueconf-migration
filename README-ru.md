@@ -1,8 +1,8 @@
 <p align="center">
   <a href="https://trueconf.ru" target="_blank" rel="noopener noreferrer">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="assets/logo-cyrillic.svg" type="image/svg">
-      <img width="150" src="assets/logo-cyrillic.svg" type="image/svg">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/TrueConf/.github/refs/heads/main/logos/logo-cyrillic-dark.svg">
+      <img width="150" alt="trueconf" src="https://raw.githubusercontent.com/TrueConf/.github/refs/heads/main/logos/logo-cyrillic.svg">
     </picture>
   </a>
 </p>
@@ -10,7 +10,7 @@
 <h1 align="center">🛡️ Безопасный перенос чатов из Telegram в TrueConf</h1>
 
 <p align="center">Нужен безопасный мессенджер без блокировок?
-Тогда переноси все свои чаты из Telegram в TrueConf всего за пару кликов. 
+Тогда переноси все свои чаты из Telegram в TrueConf всего за пару кликов.
 Поддержан перенос только в on-premise версии <a href="https://trueconf.ru/products/server/server-videokonferenciy.html">TrueConf Server</a> / <a href="https://trueconf.ru/products/enterprise/trueconf-enterprise.html">TrueConf Enterprise</a>.</p>
 
 <p align="center">
@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <img src="/assets/head_ru.png" alt="Telegram и TrueConf" width="800" height="auto">
+  <img src="assets/head_ru.png" alt="Telegram и TrueConf" width="800" height="auto">
 </p>
 
 

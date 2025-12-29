@@ -1,11 +1,12 @@
 <p align="center">
   <a href="https://trueconf.com" target="_blank" rel="noopener noreferrer">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="assets/logo.svg" type="image/svg">
-      <img width="150" src="assets/logo.svg" type="image/svg">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/TrueConf/.github/refs/heads/main/logos/logo-dark.svg">
+      <img width="150" alt="trueconf" src="https://raw.githubusercontent.com/TrueConf/.github/refs/heads/main/logos/logo.svg">
     </picture>
   </a>
 </p>
+
 <h1 align="center">🛡️ Secure сhat transfer from Telegram to TrueConf</h1>
 
 <p align="center">Looking for a secure messenger? Transfer all your chats from Telegram to TrueConf in just a few clicks. Migration is supported only in the on-premise solutions <a href=\"https://trueconf.ru/products/server/server-videokonferenciy.html\">TrueConf Server</a> / <a href=\"https://trueconf.ru/products/enterprise/trueconf-enterprise.html\">TrueConf Enterprise</a>.</p>
@@ -16,12 +17,12 @@
     <a href="https://t.me/trueconf_chat" target="_blank">
         <img src="https://img.shields.io/badge/telegram-group-blue?style=flat-square&logo=telegram" />
     </a>
-    <a href="https://chat.whatsapp.com/GY97WBzSgvD1cJG0dWEiGP">
-        <img src="https://img.shields.io/badge/whatsapp-commiunity-gree?style=flat-square&logo=whatsapp" />
+    <a href="https://discord.gg/2gJ4VUqATZ">
+        <img src="https://img.shields.io/badge/Discord-%235865F2.svg?&logo=discord&logoColor=white" />
     </a>
 </p>
 <p align="center">
-  <img src="/assets/head_en.png" alt="Telegram and TrueConf" width="800" height="auto">
+  <img src="assets/head_en.png" alt="Telegram and TrueConf" width="800" height="auto">
 </p>
 
 <p align="center">
