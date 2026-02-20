@@ -34,19 +34,20 @@
 
 ## Введение
 
-Для переноса переписки из Telegram в TrueConf вы должны:
+Для успешного переноса прежде всего:
+
+1. Установите приложение [Telegram Desktop](https://desktop.telegram.org/).
+2. Разверните [TrueConf Server](https://trueconf.ru/products/tcsf/besplatniy-server-videoconferenciy.html) версии 5.5 или выше:
+   - [для Windows](https://trueconf.ru/blog/baza-znaniy/install-lan-videoconferencing-system) ([видео-инструкция](https://rutube.ru/video/7cf74e21db7b492ed7d0bf7e0190a68f/));
+   - для Linux: [Debian](https://trueconf.ru/blog/baza-znaniy/kak-za-15-minut-razvernut-sistemu-videokonferenczij-na-baze-os-linux), [CentOS](https://trueconf.ru/blog/baza-znaniy/ustanovka-trueconf-server-na-centos-stream-9-linux-za-15-minut), [Astra Linux](https://trueconf.ru/blog/baza-znaniy/ustanovka-trueconf-server-na-os-astra-linux-se-za-15-minut), [Альт Сервер](https://trueconf.ru/blog/baza-znaniy/ustanovka-trueconf-server-na-alt-server-linux-za-15-minut), [РЕД ОС](https://trueconf.ru/blog/baza-znaniy/ustanovka-trueconf-server-na-red-os-linux-za-15-minut).
+3. Установите на любой ПК (_не там где TrueConf Server_) [Python 3.11](https://docs.python.org/3/using/index.html) или выше.
+
+После этого мы покажем как с щепоткой терпения перенести чаты по таким шагам:
 
 1. [Экспортировать чат Telegram](#экспорт-чата-telegram).
 2. [Настроить конфигурационный файл](#настройка-конфигурационного-файла).
 3. При [необходимости создать](#автоматическое-добавление-пользователей-в-trueconf-server) заранее учётные записи пользователей на сервере видеосвязи.
 4. [Запустить скрипт](#перенос-чата).
-
-Также вам понадобится:
-
-- установленное приложение [Telegram Desktop](https://desktop.telegram.org/);
-- развернутый [TrueConf Server](https://trueconf.ru/products/tcsf/besplatniy-server-videoconferenciy.html) версии 5.5 или выше ([инструкция](https://trueconf.ru/docs/server/ru/admin/server-part/));
-- установленный Python 3.11 или выше;
-- щепотка терпения.
 
 ## Скачивание репозитория и настройка окружения
 
