@@ -126,7 +126,7 @@ async def create_chat_and_add_users():
 
         )
     else:
-        bot = Bot(server=config["server"]["ip_address"], token=token)
+        bot = Bot(server=config["server"]["address"], token=token)
 
     await bot.start()
     await bot.connected_event.wait()
@@ -238,7 +238,7 @@ async def fill_chat(chat_id, convert_voice_message):
                 verify_ssl=verify_ssl,
             )
         else:
-            bot = Bot(server=config["server"]["ip_address"], token=token)
+            bot = Bot(server=config["server"]["address"], token=token)
 
         if data_.get("type", False) == "user":
             users_object.update({f"user{data_['telegram_id']}": bot})
