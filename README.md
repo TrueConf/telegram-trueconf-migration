@@ -431,9 +431,16 @@ In this case each text message will have this caption at the bottom
 
 Voice messages in Telegram are in the **ogg** format. TrueConf client
 applications do not support this format. For the sake of convenience, you can
-convert all audio messages to video with a `cover_image`. The chat transfer
-script automatically performs the conversion with **ffmpeg** (which has to be
-pre-installed and added to `path`).
+convert all audio messages to video with a `cover_image`. 
+
+> [!IMPORTANT]
+> To render timestamps on video, FFmpeg must be installed with `drawtext` filter support. Before enabling this feature, please check your environment:
+> 
+> ```bash
+> pipenv run python check_ffmpeg.py
+> ```
+> 
+> If the check passes successfully (FFmpeg OK ✅), you can proceed with the configuration.
 
 To do it:
 
