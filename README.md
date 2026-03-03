@@ -440,7 +440,7 @@ convert all audio messages to video with a `cover_image`.
 > pipenv run python check_ffmpeg.py
 > ```
 > 
-> If the check passes successfully (FFmpeg OK ✅), you can proceed with the configuration.
+> If the check passes successfully (**FFmpeg OK** ✅), you can proceed with the configuration.
 
 To do it:
 
