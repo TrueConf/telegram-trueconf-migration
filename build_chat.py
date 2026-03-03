@@ -12,6 +12,7 @@ import orjson
 import tomlkit
 from colorama import Fore, Style
 from trueconf import Bot, ParseMode
+from trueconf.types import FSInputFile
 from trueconf.types.responses import (
     CreateChannelResponse,
     CreateGroupChatResponse,
@@ -274,46 +275,45 @@ async def fill_chat(chat_id, convert_voice_message):
             if message.get("photo", False):
                 r: SendFileResponse = await users_object[message["from_id"]].send_photo(
                     chat_id=chat_id,
-                    file_path=telegram_export_dir / message["photo"],
-                    preview_path=telegram_export_dir / message["photo"],
+                    file=FSInputFile(path=telegram_export_dir / message["photo"]),
+                    preview=FSInputFile(path=telegram_export_dir / message["photo"]),
                 )
                 map_message_ids[message["id"]].append(r.message_id)
 
             elif message.get("media_type", False):
                 if Path(file).is_file():
-                    print(f"Message: {message['id']}, {file}")
                     continue
                 match message["media_type"]:
                     case "voice_message":
                         if convert_voice_message:
-                            file = await convert_voice_message_to_video(telegram_export_dir / check_file(file))
-                        r: SendFileResponse = await users_object[message["from_id"]].send_document(
-                            chat_id=chat_id, file_path=file)
-                        map_message_ids[message["id"]].append(r.message_id)
+                            audio_file_path = await convert_voice_message_to_video(telegram_export_dir / check_file(file))
+                            r: SendFileResponse = await users_object[message["from_id"]].send_document(
+                                chat_id=chat_id, file=FSInputFile(path=audio_file_path))
+                            map_message_ids[message["id"]].append(r.message_id)
 
                     case "animation":
                         r: SendFileResponse = await users_object[message["from_id"]].send_document(
-                            chat_id=chat_id, file_path=telegram_export_dir / check_file(file))
+                            chat_id=chat_id, file=FSInputFile(path=telegram_export_dir / check_file(file)))
                         map_message_ids[message["id"]].append(r.message_id)
 
                     case "video_message":
                         r: SendFileResponse = await users_object[message["from_id"]].send_document(
-                            chat_id=chat_id, file_path=telegram_export_dir / check_file(file))
+                            chat_id=chat_id, file=FSInputFile(path=telegram_export_dir / check_file(file)))
                         map_message_ids[message["id"]].append(r.message_id)
 
                     case "video_file":
                         r: SendFileResponse = await users_object[message["from_id"]].send_document(
-                            chat_id=chat_id, file_path=telegram_export_dir / check_file(file))
+                            chat_id=chat_id, file=FSInputFile(path=telegram_export_dir / check_file(file)))
                         map_message_ids[message["id"]].append(r.message_id)
 
                     case "sticker" if message["mime_type"] == "video/webm":
                         r: SendFileResponse = await users_object[message["from_id"]].send_document(
-                            chat_id=chat_id, file_path=telegram_export_dir / check_file(file))
+                            chat_id=chat_id, file=FSInputFile(path=telegram_export_dir / check_file(file)))
                         map_message_ids[message["id"]].append(r.message_id)
 
                     case "sticker" if message["mime_type"] == "image/webp":
                         r: SendFileResponse = await users_object[message["from_id"]].send_sticker(
-                            chat_id=chat_id, file_path=telegram_export_dir / check_file(file))
+                            chat_id=chat_id, file=FSInputFile(path=telegram_export_dir / check_file(file)))
                         map_message_ids[message["id"]].append(r.message_id)
 
                     case "sticker" if message["mime_type"] == "application/x-tgsticker":
@@ -326,7 +326,7 @@ async def fill_chat(chat_id, convert_voice_message):
 
             elif message.get("file", False):
                 r: SendFileResponse = await users_object[message["from_id"]].send_document(
-                    chat_id=chat_id, file_path=telegram_export_dir / file)
+                    chat_id=chat_id, file=FSInputFile(path=telegram_export_dir / file))
                 map_message_ids[message["id"]].append(r.message_id)
 
             if message["text_entities"]:
