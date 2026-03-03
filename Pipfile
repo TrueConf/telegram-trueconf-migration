@@ -10,7 +10,7 @@ ffmpeg-python = "*"
 progress = "*"
 transliterate = "*"
 tomlkit = "*"
-python-trueconf-bot = "1.1.5"
+python-trueconf-bot = "1.1.6"
 
 [dev-packages]
 

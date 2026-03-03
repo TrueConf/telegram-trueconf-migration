@@ -127,7 +127,7 @@ async def create_chat_and_add_users():
 
         )
     else:
-        bot = Bot(server=config["server"]["address"], token=token)
+        bot = Bot(server=address, token=token, verify_ssl=verify_ssl)
 
     await bot.start()
     await bot.connected_event.wait()
@@ -191,8 +191,8 @@ async def convert_voice_message_to_video(audio_file: Path):
             text=f"Telegram\n{timestamp}",
             fontcolor="white",
             fontsize=18,
-            x="w-tw-20",  # отступ от правого края
-            y="h-th-20",  # отступ от нижнего края
+            x="w-tw-20",
+            y="h-th-20",
             box=1,
             boxcolor="black@0.5",
             boxborderw=5
@@ -239,7 +239,7 @@ async def fill_chat(chat_id, convert_voice_message):
                 verify_ssl=verify_ssl,
             )
         else:
-            bot = Bot(server=config["server"]["address"], token=token)
+            bot = Bot(server=address, token=token, verify_ssl=verify_ssl)
 
         if data_.get("type", False) == "user":
             users_object.update({f"user{data_['telegram_id']}": bot})
