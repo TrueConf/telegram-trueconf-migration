@@ -165,7 +165,7 @@ async def create_chat_and_add_users():
     return created_instance.chat_id
 
 
-async def convert_voice_message_to_video(audio_file: Path):
+async def convert_voice_message_to_video(audio_file: Path, date):
     print(f"{Fore.BLUE}Converting voice message to video...{Style.RESET_ALL}")
     audio_path = Path(audio_file).expanduser().resolve(strict=False)
 
@@ -178,10 +178,8 @@ async def convert_voice_message_to_video(audio_file: Path):
     output_dir = Path("videos")
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = (output_dir / audio_path.stem).with_suffix(".mp4")
-
-    date_str, time_str = audio_path.stem.split("@", 1)[1].split("_")
-
-    timestamp = datetime.strptime(f"{date_str} {time_str}", "%d-%m-%Y %H-%M-%S")
+    date = datetime.fromisoformat(date)
+    timestamp = date.strftime("%Y-%m-%d %H:%M:%S")
 
     video_stream = (
         ffmpeg
@@ -286,7 +284,10 @@ async def fill_chat(chat_id, convert_voice_message):
                 match message["media_type"]:
                     case "voice_message":
                         if convert_voice_message:
-                            audio_file_path = await convert_voice_message_to_video(telegram_export_dir / check_file(file))
+                            audio_file_path = await convert_voice_message_to_video(
+                                audio_file=telegram_export_dir / check_file(file),
+                                date=message["date"],
+                            )
                             r: SendFileResponse = await users_object[message["from_id"]].send_document(
                                 chat_id=chat_id, file=FSInputFile(path=audio_file_path))
                             map_message_ids[message["id"]].append(r.message_id)
