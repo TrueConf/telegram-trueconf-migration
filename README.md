@@ -309,7 +309,7 @@ For each user, you will receive one of the following responses:
 
 > [!IMPORTANT]
 > This section should be studied by administrators **only** if users have already been created on TrueConf Server. 
-> Go through the section "Automatic collection of user information" before taking these steps.
+> Go through the section "[Automatic collection of user information](#automatic-collection-of-user-information)" before taking these steps.
 
 To successfully migrate a chat, you need to map Telegram users to TrueConf Server
 users. For each user, configure the `[users]` block in the following way:
@@ -318,8 +318,8 @@ users. For each user, configure the `[users]` block in the following way:
    ```toml
    [users.<trueconf_id>]
 
-# Example:
-[users.john] -> [users.john_doe]
+   # Example:
+   [users.john] -> [users.john_doe]
    ```
 1. Specify the `access_token`:
    ```toml
