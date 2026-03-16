@@ -265,7 +265,7 @@ async def fill_chat(chat_id, convert_voice_message):
         else:
             return file
 
-    for message in data["messages"]:
+    for count, message in enumerate(data["messages"]):
         map_message_ids[message["id"]] = []
         file = message.get("file", "")
 
@@ -352,10 +352,14 @@ async def fill_chat(chat_id, convert_voice_message):
                 map_message_ids[message["id"]].append(r.message_id)
 
         except KeyError as e:
-            print(
-                f"{Fore.YELLOW}Skipped message from '{message['from_id']}', because this ID was not added to config.toml.{Style.RESET_ALL}")
+            try:
+                print(
+                    f"[item: #{count}, id: {message.get('id')}]: {Fore.YELLOW}Skipped message from '{message['from_id']}', because this ID was not added to config.toml.{Style.RESET_ALL}")
+            except KeyError:
+                print(
+                    f"[item: #{count}, id: {message.get('id')}]: {Fore.RED}Invalid from_id parameter in result.json:\n{Fore.BLUE}{message}{Style.RESET_ALL}\n")
         except FileNotIncluded as e:
-            print(f"{Fore.YELLOW}Skipped message '{message['id']}'.", e, f"{Style.RESET_ALL}")
+            print(f"[item: #{count}, id: {message.get('id')}]: {Fore.YELLOW}Skipped message '{message['id']}'.", e, f"{Style.RESET_ALL}")
 
     print(f"{Fore.GREEN}✅ Chat transfer complete{Style.RESET_ALL}")
 
