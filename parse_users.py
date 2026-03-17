@@ -40,7 +40,8 @@ registration = config["registration"].get("auto", False)
 
 for user in data["messages"]:
     if user.get("from_id", False):
-
+        if user["from"] is None:
+            continue
         t = tomlkit.table()
 
         if registration:
