@@ -224,7 +224,7 @@ file:
    ```
 
 1. To collect additional data such as the username and the self-defined user name (`real_display_name`), we recommend creating a bot via [@BotFather](https://t.me/BotFather). 
-   Then specify the bot token and the target chat ID in `config.toml` (you can get it using [@userinfobot](https://t.me/userinfobot).
+   Then specify the bot token and the target chat ID in `config.toml` (you can get it using [@userinfobot](https://t.me/userinfobot)).
 
 1. Run the script in the configured environment:
 
@@ -292,15 +292,15 @@ The script also requires an `access_token` to access the TrueConf Server API. Yo
 
    Go to **Web → Security** and copy the API token.
 
-   > [!CAUTION]
-   > This type of token does not expire by default, provides access to the entire server API, and must be stored as an administrator secret.
+> [!CAUTION]
+> This type of token does not expire by default, provides access to the entire server API, and must be stored as an administrator secret.
 
 2. Via an OAuth application (recommended).
 
    Create an [OAuth application](https://trueconf.com/docs/server/en/admin/api/), grant it only the required permissions, and send a request to `https://domain.name/api/v4/token` to exchange the `client_id` and `client_secret` for an `access_token`.
 
-   > [!NOTE]
-   > By default, an OAuth token is valid for 1 hour, which makes this option more secure for migration and automation scenarios.
+> [!NOTE]
+> By default, an OAuth token is valid for 1 hour, which makes this option more secure for migration and automation scenarios.
 
 After verifying all the data, run the script:
 
