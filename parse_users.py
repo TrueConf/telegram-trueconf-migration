@@ -13,7 +13,7 @@ from aiogram import Bot
 from aiogram.enums import ChatMemberStatus
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 
-with open("config.toml", "rb") as f:
+with open("config.toml", "r", encoding="utf-8") as f:
     config = tomlkit.load(f)
     print(f"{Fore.BLUE}Read config.toml{Style.RESET_ALL}")
 
@@ -135,7 +135,7 @@ async def enrich_users(bot: Bot = None) -> None:
             config["users"][user_id] = t
 
 
-    with open("config.toml", "w") as f:
+    with open("config.toml", "w", encoding="utf-8", newline="") as f:
         tomlkit.dump(config, f)
     print(f"{Fore.GREEN}File 'config.toml' updated successfully {Style.RESET_ALL}")
 

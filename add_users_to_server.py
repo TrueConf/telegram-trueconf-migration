@@ -5,7 +5,7 @@ from colorama import Fore, Style
 
 
 def main():
-    with open("config.toml", "rb") as f:
+    with open("config.toml", "r", encoding="utf-8") as f:
         config = tomlkit.load(f)
         print(f"{Fore.BLUE}Read config.toml{Style.RESET_ALL}")
 
