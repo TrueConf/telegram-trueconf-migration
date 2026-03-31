@@ -120,7 +120,8 @@ this window, if it obstructs the view.
 
 ### Description
 
-> [!NOTE] We use the [TOML](https://toml.io/) language to configure settings.
+> [!NOTE]
+> We use the [TOML](https://toml.io/) language to configure settings.
 
 Open the `config.toml` file. You will see the following structure:
 
@@ -210,7 +211,7 @@ according to the following description:
 
 If the Telegram chat has a large number of participants, filling out the config
 file can be quite discouraging :cry:. Due to this reason, the TrueConf team
-created a script <parse_users.py> which automatically populates the `[users]`
+created a script [parse_users.py](parse_users.py) which automatically populates the `[users]`
 section.
 
 > [!NOTE] 
@@ -221,10 +222,16 @@ file:
    ```toml
    telegram_export_dir = "~/Downloads/Telegram Desktop/ChatExport_2025-09-05"
    ```
+
+1. To collect additional data such as the username and the self-defined user name (`real_display_name`), we recommend creating a bot via [@BotFather](https://t.me/BotFather). 
+   Then specify the bot token and the target chat ID in `config.toml` (you can get it using [@userinfobot](https://t.me/userinfobot).
+
 1. Run the script in the configured environment:
+
    ```shell
    uv run parse_users.py
    ```
+
 1. If the operation is completed successfully, you will receive a notification
 about the correct update of the configuration file:
 
@@ -235,13 +242,14 @@ about the correct update of the configuration file:
 1. In the `[users]` section of the `config.toml` file, you will have all the
 participants listed with the following parameters:
 
-```toml
-[users]
-[users.john_doe]
-access_token = ""
-telegram_id = "12345678"
-type = "user"
-```
+   ```toml
+   [users]
+   [users.john_doe]
+   access_token = ""
+   trueconf_id = ""
+   telegram_id = "12345678"
+   type = "user"
+   ```
 
 If you will automatically add users to TrueConf Server, specify the following
 parameters in the `config.toml` file:
@@ -257,7 +265,7 @@ and restart the script.
 
 ### How to add users automatically to TrueConf Server
 
-To migrate conversations from Telegram to TrueConf, all users participating in the chat must be registered in TrueConf Server.  
+To migrate conversations from Telegram to TrueConf, all users participating in the chat must be registered in TrueConf Server. 
 If you **are not using LDAP**, you can use the [add_users_to_server.py](add_users_to_server.py) script for automatic user provisioning.
 
 > [!IMPORTANT]
@@ -278,6 +286,22 @@ password = "verystrongpassword1357"
 > Double-check all new users. 
 > If you made a mistake, you can delete all created users using `delete_users_from_server.py` and repeat the registration process.
 
+The script also requires an `access_token` to access the TrueConf Server API. You can obtain it in one of the following ways:
+
+1. In the TrueConf Server control panel.
+
+   Go to **Web → Security** and copy the API token.
+
+   > [!CAUTION]
+   > This type of token does not expire by default, provides access to the entire server API, and must be stored as an administrator secret.
+
+2. Via an OAuth application (recommended).
+
+   Create an [OAuth application](https://trueconf.com/docs/server/en/admin/api/), grant it only the required permissions, and send a request to `https://domain.name/api/v4/token` to exchange the `client_id` and `client_secret` for an `access_token`.
+
+   > [!NOTE]
+   > By default, an OAuth token is valid for 1 hour, which makes this option more secure for migration and automation scenarios.
+
 After verifying all the data, run the script:
 
 ```shell
@@ -296,11 +320,10 @@ For each user, you will receive one of the following responses:
 
 ### For Configured Infrastructures (When Using LDAP)
 
-If your infrastructure uses LDAP and you need to migrate a chat with a large number of participants — more than 20 users — manually collecting an `access_token` for each user may be too time-consuming and impractical.  
-In this case, we recommend performing the migration outside business hours by temporarily switching TrueConf Server from **LDAP** to **Registry** mode.  
-You can then use the `add_users_to_server.py` script as described in the section “[Automatic User Provisioning in TrueConf Server (Without LDAP)](#automatic-user-provisioning-in-trueconf-server-without-ldap)”,  
-add the required users to the server, and complete the chat migration.  
-Once the migration is finished, the server can be switched back to LDAP.  
+If your infrastructure uses LDAP and you need to migrate a chat with a large number of participants — more than 20 users — manually collecting an `access_token` for each user may be too time-consuming and impractical.
+In this case, we recommend performing the migration outside business hours by temporarily switching TrueConf Server from **LDAP** to **Registry** mode.
+You can then use the `add_users_to_server.py` script as described in the section “[Automatic User Provisioning in TrueConf Server (Without LDAP)](#automatic-user-provisioning-in-trueconf-server-without-ldap)”,
+add the required users to the server, and complete the chat migration. Once the migration is finished, the server can be switched back to LDAP.
 If switching to Registry is not possible even for a short period of time, follow the instructions in the next section.
 
 We recommend the following procedure:
@@ -328,7 +351,7 @@ We recommend the following procedure:
 6.	Perform the [chat migration](#chat-migration).
 7.	After the migration has been successfully completed, switch the server back to **LDAP**.
 
-If switching to Registry is not possible even for a short period of time, use the instructions in the next section.
+If switching to **Registry** is not possible even for a short period of time, use the instructions in the next section.
 
 ### Obtaining an access_token for Chat API Authorization (If Switching from LDAP to Registry Is Not Possible)
 
@@ -389,6 +412,24 @@ that can be later sent to the administrator:
 <p align="center">
   <img src="assets/chatbot_token_en.png" alt="Chatbot Auth Page" width="800" height="auto">
 </p>
+
+#### What to Do with the `access_token` After Obtaining It
+
+Once users have received their `access_token` values, the administrator must add them to the `config.toml` file in the `[users]` section for the corresponding participants.
+
+For each user, fill in the `access_token` field in their block:
+
+```toml
+[users.john]
+trueconf_id = "john_doe"
+access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+telegram_id = "44556677"
+```
+
+> [!IMPORTANT]
+> Make sure that each token is inserted into the block of the user it actually belongs to. Otherwise, messages may be migrated under the wrong identity.
+
+Once the access_token field has been filled in for all participants, you can proceed to the next step — [chat migration](#chat-migration).
 
 ## Chat migration
 
@@ -471,8 +512,8 @@ To start migration, run the command in the terminal:
 uv run build_chat.py
 ```
 
-If the chat type is either `group` or `channel`, a new chat copy will be created
-each time the script is executed.
+> [!WARNING]
+> If the chat type is either `group`, `supergroup` or `channel`, a new chat copy will be created each time the script is executed.
 
 > [!TIP]
 > If you, as an administrator, want to take full control over the migration process, specify your TrueConf ID in the `owner` parameter.
