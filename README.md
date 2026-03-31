@@ -73,25 +73,12 @@ Python 3.12.4
 > [!IMPORTANT]
 > If necessary, update your version; otherwise, the script will not work.
 
-### Setting up the environment
+### Environment Setup
 
-To install dependencies and set up the environment, we use **pipenv**. It is not
-available on the system by default and needs to be installed:
-
-```bash
-pip install pipenv
-```
-
-Next, in the terminal, go to the directory with the unpacked archive:
+Create a virtual environment and install the dependencies (preferably using [uv](https://docs.astral.sh/uv/)):
 
 ```bash
-cd path/to/folder
-```
-
-and run the command to set up the environment:
-
-```bash
-pipenv install
+uv sync
 ```
 
 ## Telegram chat export
@@ -140,24 +127,26 @@ Open the `config.toml` file. You will see the following structure:
 ```toml
 telegram_export_dir = ""
 
+[telegram_bot]
+token = ""
+chat_id = ""
+
 [server]
 address = "" # IP or domain.name
-verify_ssl = false # or true if verification is needed
-access_token = "" # If you don't use access_token, enter the values for `client_id` and `client_secret`
-client_id = ""
-client_secret = ""
-
+web_port = 443
+verify_ssl = false # or true if needed
+access_token = ""
 
 [chat]
+type = "" # available: personal, group, channel, supergroup
 name = ""
-type = "" # available types: personal, group, channel
-owner = "" # who created the chat
+supergroup_topic_name_template = "{topic} | {supergroup}" # only for supergroup. Available: topic – topic's name, supergroup's name from name param
+owner = "" # who created chat
 
 [chat.datetime]
 view_original_time_in_message = false # or true if needed
 timezone = "GMT" # need if view_original_time_in_message = true
 caption = "" # example: f"{caption}{dt}"
-
 
 [chat.voice_message]
 convert_voice_message_to_video = false
@@ -165,7 +154,7 @@ cover_image = "cover/en.png" # by default "cover/en.png"
 
 [registration]
 auto = false # or true if needed
-email_domain = "" # If it does not exist, the external server name will be used instead.
+email_domain = "" # If it does not exist, the external server name will be substituted.
 default_password = ""
 
 [users]
@@ -181,34 +170,38 @@ type = ""
 To transfer chats successfully, you need to fill out the configuration file
 according to the following description:
 
-| Section | Parameter | Description |
-| --- | --- | --- |
-|  | telegram_export_dir | Path to the folder with the exported Telegram chat |
-| server |  | TrueConf Server settings |
-|  | address | Domain name or IP address of TrueConf Server |
-|  | verify_ssl | SSL certificate verification. The value should be set to `true` if you have a trusted certificate. |
-|  | access_token | Авторизационный токен (*TTL = 1 час*). Нужен, если вы хотите автоматизировать добавление большого кол-ва пользователей в TrueConf Server через API. |
-|  | client_id, client_secret | ID and secret of the created OAuth application. Required if you have not worked with the TrueConf Server API (check for more details below) |
-| chat |  | Settings for a new chat in TrueConf Server |
-|  | name | Chat name |
-|  | type | Chat type: `personal` (one-on-one chat), `group` (group chat), `channel` (channel). |
-|  | owner | The creator (for a `personal` chat) and the chat owner (for a `group` chat and `channel`) |
-| chat.datetime |  | Settings for displaying the original date and time when a message was sent in Telegram. |
-|  | view_original_time_in_message | If the value is set to `true`, each text message will include the date and time of sending. |
-|  | timezone | Time zone settings. It is necessary to specify the correct time zone for most users in the chat. The default value is `GMT` (UTC). |
-|  | caption | If necessary, you can add a label before the date and time, such as `Sent:` or `Date:`. |
-| chat.voice_message |  | Settings for the transfer of voice messages |
-|  | convert_voice_message_to_video | If the value is set to `true`, all voice messages will be converted to the `mp4` video format. The [ffmpeg](https://ffmpeg.org/) package has to be installed in advance. |
-|  | cover_image | If `convert_voice_message_to_video = true`, the specified placeholder will be used. |
-|  | date_time | If set to `true`, the **text message** will include the date and time when the original Telegram message was sent. |
-| registration |  | Settings for automatically adding users on TrueConf Server. |
-|  | auto | If the value is set to `true`, the `display_name` and `password` parameters will be added to [users] when `parse_users.py` is used. |
-|  | email_domain | If a corporate email is used, you will need to specify the domain that will be used in the `email` field when a user is automatically added. For example, if you use the domain `mail.example.com`, the email of the added `user` will be `user@mail.example.com`. |
-|  | default_password | The general password for all accounts. This value will be used for automatically filling out the `password` parameter when the `parse_users.py` script is used. |
-| users |  | The section where user accounts of chat participants are configured. It can be populated automatically with `parse_users.py`. |
-|  | display_name, password | Automatically filled if `registration.auto = true`. Required for automatically adding users with the help of `add_users_to_server.py` |
-|  | telegram_id, type | Digital Telegram ID and user type (`user`, `channel`). These fields are automatically filled when `parse_users.py` is used. |
-|  | access_token | Авторизационный токен пользователя в TrueConf Chatbot Connector (*TTL = 1 мес.*). Необходим, для переноса чатов. Если не указан, используется `password`. |
+| Section            | Parameter                      | Description                                                                                                                                                                                                                                                         |
+|--------------------|--------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                    | telegram_export_dir            | Path to the folder containing the exported Telegram chat                                                                                                                                                                                                            |
+| telegram_bot       |                                |                                                                                                                                                                                                                                                                     |
+|                    | token                          | Bot token from [@BotFather](https://t.me/BotFather)                                                                                                                                                                                                                 |
+|                    | chat_id                        | Chat ID. You can get it from [@userinfobot](https://t.me/userinfobot)                                                                                                                                                                                               |
+| server             |                                | TrueConf Server settings                                                                                                                                                                                                                                            |
+|                    | address                        | Domain name or IP address of the TrueConf Server                                                                                                                                                                                                                    |
+|                    | web_port                       | HTTPS port in use. Defaults to `443`.                                                                                                                                                                                                                               |
+|                    | verify_ssl                     | SSL certificate verification. Set to `true` if you are using a trusted certificate.                                                                                                                                                                                 |
+|                    | access_token                   | Security token for API access.                                                                                                                                                                                                                                      |
+| chat               |                                | Settings for the new chat in TrueConf Server                                                                                                                                                                                                                        |
+|                    | name                           | Chat name                                                                                                                                                                                                                                                           |
+|                    | type                           | Chat type: `personal` (one-to-one chat), `group` (group chat), `channel` (channel), `supergroup` (group chat with a forum structure: themes, topics).                                                                                                               |
+|                    | supergroup_topic_name_template | Template for the name of the forum being migrated to TrueConf                                                                                                                                                                                                       |
+|                    | owner                          | Creator (for `personal`) and chat owner (for `group`, `supergroup`, and `channel`)                                                                                                                                                                                  |
+| chat.datetime      |                                | Settings for displaying the original Telegram message date and time.                                                                                                                                                                                                |
+|                    | view_original_time_in_message  | If `true`, the date and time of sending will be added to each text message.                                                                                                                                                                                         |
+|                    | timezone                       | Time zone setting. You must specify the correct time zone for most users in the chat. Defaults to `GMT` (UTC).                                                                                                                                                      |
+|                    | caption                        | Optionally, you can add a label before the date and time. For example, `Sent:` or `Date:`.                                                                                                                                                                          |
+| chat.voice_message |                                | Settings for migrating voice messages                                                                                                                                                                                                                               |
+|                    | convert_voice_message_to_video | If `true`, all voice messages will be converted to `mp4` video format. Requires the [ffmpeg](https://ffmpeg.org/) package to be preinstalled.                                                                                                                       |
+|                    | cover_image                    | If `convert_voice_message_to_video = true`, the specified placeholder image will be used.                                                                                                                                                                           |
+|                    | data_time                      | If `true`, the date and time the original Telegram message was sent will be added to the **text message**.                                                                                                                                                          |
+| registration       |                                | Settings for automatically adding users to TrueConf Server.                                                                                                                                                                                                         |
+|                    | auto                           | If `true`, the `display_name` and `password` parameters will be added to [users] when using `parse_users.py`.                                                                                                                                                       |
+|                    | email_domain                   | If you use corporate email, specify the domain that will be used in the `email` field when automatically adding a user. For example, if you use the `mail.example.com` domain, then a user named `user` will be assigned the email address `user@mail.example.com`. |
+|                    | default_password               | Common password for all accounts. Automatically fills the `password` parameter when using the `parse_users.py` script.                                                                                                                                              |
+| users              |                                | Section for configuring user accounts (chat participants). It can be filled automatically using `parse_users.py`.                                                                                                                                                   |
+|                    | display_name, password         | Automatically filled in if `registration.auto = true`. Required for automatic user creation using `add_users_to_server.py`.                                                                                                                                         |
+|                    | telegram_id, type              | Numeric Telegram ID and user type (`user`, `channel`). Automatically filled in when using `parse_users.py`.                                                                                                                                                         |
+|                    | access_token                   | User authorization token in TrueConf Chatbot Connector (_TTL = 1 month_). Required for chat migration. If not specified, `password` is used.                                                                                                                        |
 
 > [!TIP]
 > **Do I really need to fill so many parameters 🤯?** Actually, no. To simplify this process, we provided scripts, described below.
@@ -230,24 +223,25 @@ file:
    ```
 1. Run the script in the configured environment:
    ```shell
-   pipenv run python parse_users.py
+   uv run parse_users.py
    ```
 1. If the operation is completed successfully, you will receive a notification
 about the correct update of the configuration file:
+
    ```shell
    The file 'config.toml' has been successfully updated
    ```
+
 1. In the `[users]` section of the `config.toml` file, you will have all the
 participants listed with the following parameters:
-   ```toml
-   [users]
 
+```toml
+[users]
 [users.john_doe]
-
 access_token = ""
 telegram_id = "12345678"
 type = "user"
-   ```
+```
 
 If you will automatically add users to TrueConf Server, specify the following
 parameters in the `config.toml` file:
@@ -263,36 +257,31 @@ and restart the script.
 
 ### How to add users automatically to TrueConf Server
 
-To migrate chats from Telegram to TrueConf, all users participating in the
-conversation have to be registered on TrueConf Server. If you **do not use
-LDAP**, you can run the script <add_users_to_server.py> to register users
-automatically.
+To migrate conversations from Telegram to TrueConf, all users participating in the chat must be registered in TrueConf Server.  
+If you **are not using LDAP**, you can use the [add_users_to_server.py](add_users_to_server.py) script for automatic user provisioning.
 
 > [!IMPORTANT]
-> If you have already deployed and configured the video conferencing
-server, go to the next section.
+> If your infrastructure is already configured, proceed to the next section.
 
-Before running the script, make sure that all data in the `[users]` block meets
-your expectations. If necessary, change the TrueConf ID (before @),
-`display_name` and `password`:
+Before running the script, make sure that all data in the `[users]` block meets your expectations.  
+Specify the required TrueConf ID (the part before `@`), and adjust the display name (`display_name`) and password (`password`) if necessary:
 
 ```toml
-[users.<trueconf_id>]
-
-#Example:
-[users.john_doe]
+# Example:
+[users.john]
+trueconf_id = "john_doe"
 display_name = "John Doe"
 password = "verystrongpassword1357"
 ```
 
-> [!WARNING]
-> Double-check all new users since automatic re-registration is unavailable. 
-> If you make a mistake, you will need to correct it in the server control panel.
+> [!NOTE]
+> Double-check all new users. 
+> If you made a mistake, you can delete all created users using `delete_users_from_server.py` and repeat the registration process.
 
 After verifying all the data, run the script:
 
 ```shell
-pipenv run python add_users_to_server.py
+uv run add_users_to_server.py
 ```
 
 For each user, you will receive one of the following responses:
@@ -305,38 +294,50 @@ For each user, you will receive one of the following responses:
  🔴 Error for user
 ```
 
-### Editing the `[users]` section for configured infrastructure
+### For Configured Infrastructures (When Using LDAP)
 
-> [!IMPORTANT]
-> This section should be studied by administrators **only** if users have already been created on TrueConf Server. 
-> Go through the section "[Automatic collection of user information](#automatic-collection-of-user-information)" before taking these steps.
+If your infrastructure uses LDAP and you need to migrate a chat with a large number of participants — more than 20 users — manually collecting an `access_token` for each user may be too time-consuming and impractical.  
+In this case, we recommend performing the migration outside business hours by temporarily switching TrueConf Server from **LDAP** to **Registry** mode.  
+You can then use the `add_users_to_server.py` script as described in the section “[Automatic User Provisioning in TrueConf Server (Without LDAP)](#automatic-user-provisioning-in-trueconf-server-without-ldap)”,  
+add the required users to the server, and complete the chat migration.  
+Once the migration is finished, the server can be switched back to LDAP.  
+If switching to Registry is not possible even for a short period of time, follow the instructions in the next section.
 
-To successfully migrate a chat, you need to map Telegram users to TrueConf Server
-users. For each user, configure the `[users]` block in the following way:
+We recommend the following procedure:
 
-1. Enter the incomplete TrueConf ID (up to @):
+1. In `config.toml`, enable automatic registration in advance and set a default password (additional details are available in the [section](#automatic-user-collection)):
+
    ```toml
-   [users.<trueconf_id>]
-
-   # Example:
-   [users.john] -> [users.john_doe]
+   [registration]
+   auto = true
+   default_password = "12345678"
    ```
-1. Specify the `access_token`:
+   
+2.	Run parse_users.py to automatically populate the `[users]` section.
+3.	Manually specify the correct `trueconf_id` for each user:
+
    ```toml
-   [users.john_doe]
-access_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9…"
+   [users.john]
+   trueconf_id = "john_doe"
+   telegram_id = "44556677"
+   password = "12345678"
    ```
+   
+4.	Outside business hours, temporarily switch TrueConf Server from **LDAP** mode to **Registry** mode without automatic user migration.
+5.	Register the users on the server using the `add_users_to_server`.py script.
+6.	Perform the [chat migration](#chat-migration).
+7.	After the migration has been successfully completed, switch the server back to **LDAP**.
 
-Refer to the next section to learn how to get an authentication token.
+If switching to Registry is not possible even for a short period of time, use the instructions in the next section.
 
-### How to get an `access_token` for authentication in the chat API
+### Obtaining an access_token for Chat API Authorization (If Switching from LDAP to Registry Is Not Possible)
 
-To get an `access_token`, you need to send a POST request with the TrueConf
-account username and password (refer to the
-[documentation](https://trueconf.ru/docs/chatbot-connector/ru/connect-and-auth/#access-token)).
-The problem is that a TrueConf Server administrator does not know the passwords
-of the server accounts. Asking users to share their domain account passwords is
-inherently insecure.
+An `access_token` is required to authorize requests to the chat API. 
+To obtain it, you need to send a **POST** request with the login and password of a TrueConf Server account (see the [documentation](https://trueconf.com/docs/chatbot-connector/en/connect-and-auth/#access-token)).
+
+However, in an LDAP-based infrastructure, this creates a practical problem:
+as a rule, the TrueConf Server administrator does not know the passwords of user accounts, because authentication is performed through domain credentials.
+Requesting employees’ corporate account passwords is both insecure and unacceptable, since it effectively means asking for access to their domain accounts.
 
 Due to this reason, TrueConf team created an [HTML page](chatbot/ru/index.html)
 to simplify this process. What should I do with it? Just add it to your TrueConf
@@ -389,8 +390,6 @@ that can be later sent to the administrator:
   <img src="assets/chatbot_token_en.png" alt="Chatbot Auth Page" width="800" height="auto">
 </p>
 
-
-
 ## Chat migration
 
 You've finally made it to this step! To transfer a chat, specify its name, type,
@@ -401,7 +400,7 @@ and owner in the configuration:
 
 #Example
 name = "Secret chat"
-type = "group" # available types are as follows: personal, group, channel
+type = "group" # available types are as follows: personal, group, supergroup, channel
 owner = "sherlock" # who created chat
 ```
 
@@ -437,7 +436,7 @@ convert all audio messages to video with a `cover_image`.
 > To render timestamps on video, FFmpeg must be installed with `drawtext` filter support. Before enabling this feature, please check your environment:
 > 
 > ```bash
-> pipenv run python check_ffmpeg.py
+> uv run check_ffmpeg.py
 > ```
 > 
 > If the check passes successfully (**FFmpeg OK** ✅), you can proceed with the configuration.
@@ -469,7 +468,7 @@ export source and the time when the original recording was made.
 To start migration, run the command in the terminal:
 
 ```shell
-pipenv run python build_chat.py
+uv run build_chat.py
 ```
 
 If the chat type is either `group` or `channel`, a new chat copy will be created
