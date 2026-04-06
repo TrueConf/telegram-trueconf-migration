@@ -62,7 +62,7 @@ class FileNotIncluded(Exception):
     pass
 
 
-with open("config2.toml", "r", encoding="utf-8") as f:
+with open("config.toml", "r", encoding="utf-8") as f:
     config = tomlkit.load(f)
     print(f"{Fore.BLUE}Read config.toml{Style.RESET_ALL}")
 
@@ -83,7 +83,7 @@ Path("videos").mkdir(parents=True, exist_ok=True)
 
 # Consts section
 IS_DATATIME = config["chat"].get("datetime", False).get("view_original_time_in_message", False)
-IS_TGS_STICKER = config["chat"].get("stikers", False).get("convert_telegram_stikers_to_webp", False)
+IS_TGS_STICKER = config["chat"].get("stickers", False).get("convert_telegram_stickers_to_webp", False)
 CAPTION = config["chat"].get("datetime", "").get("caption", "")
 TIMEZONE = config["chat"].get("datetime", False).get("timezone", False)
 TIMEZONE = ZoneInfo(TIMEZONE) if TIMEZONE else timezone.utc

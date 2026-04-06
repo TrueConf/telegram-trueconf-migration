@@ -25,8 +25,8 @@ caption = "" # example: f"{caption}{dt}"
 convert_voice_message_to_video = true
 cover_image = "cover/ru.png" # by default "cover/en.png"
 
-[chat.stikers]
-convert_telegram_stikers_to_webp = true
+[chat.stickers]
+convert_telegram_stickers_to_webp = true
 
 [registration]
 auto = true # or true if needed
