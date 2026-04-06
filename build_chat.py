@@ -1,21 +1,20 @@
-import asyncio
-import logging
 import os
 import io
 import sys
+import logging
+import asyncio
+import ffmpeg
+import orjson
+import tomlkit
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Dict
 from zoneinfo import ZoneInfo
 from tqdm import tqdm
-import ffmpeg
-import orjson
-import tomlkit
 from colorama import Fore, Style
-from lottie.parsers.tgs import parse_tgs
-from lottie.exporters.gif import export_webp
 from trueconf import Bot, ParseMode
 from trueconf.types import FSInputFile, BufferedInputFile
+from trueconf.exceptions import ApiErrorException
 from trueconf.types.responses import (
     CreateChannelResponse,
     CreateGroupChatResponse,
@@ -23,14 +22,23 @@ from trueconf.types.responses import (
     SendFileResponse,
     SendMessageResponse
 )
-from trueconf.exceptions import ApiErrorException
 
+#for Windows
+if os.name == 'nt':
+    msys_path = r"C:\msys64\mingw64\bin"
+    if os.path.exists(msys_path):
+        os.add_dll_directory(msys_path)
+        os.environ['PATH'] = msys_path + os.pathsep + os.environ.get('PATH', '')
+
+from lottie.parsers.tgs import parse_tgs
+from lottie.exporters.gif import export_webp
 from PIL import features
+
 if not hasattr(features, "webp_anim"):
     features.webp_anim = features.check("webp")
 
-
 import lottie.parsers.svg.builder as lottie_builder
+
 
 def safe_trim_offlocal(self, t, local_start, local_length, total_length):
     if local_length == 0:
@@ -54,7 +62,7 @@ class FileNotIncluded(Exception):
     pass
 
 
-with open("config.toml", "r", encoding="utf-8") as f:
+with open("config2.toml", "r", encoding="utf-8") as f:
     config = tomlkit.load(f)
     print(f"{Fore.BLUE}Read config.toml{Style.RESET_ALL}")
 
@@ -75,6 +83,7 @@ Path("videos").mkdir(parents=True, exist_ok=True)
 
 # Consts section
 IS_DATATIME = config["chat"].get("datetime", False).get("view_original_time_in_message", False)
+IS_TGS_STICKER = config["chat"].get("stikers", False).get("convert_telegram_stikers_to_webp", False)
 CAPTION = config["chat"].get("datetime", "").get("caption", "")
 TIMEZONE = config["chat"].get("datetime", False).get("timezone", False)
 TIMEZONE = ZoneInfo(TIMEZONE) if TIMEZONE else timezone.utc
@@ -181,6 +190,7 @@ async def create_chat_and_add_users():
                     user_id=user["trueconf_id"]
                 )
             except Exception as e:
+
                 print("Error:", e)
         print(f"{Fore.GREEN}Users have been added to '{chat_name}'{Style.RESET_ALL}")
 
@@ -418,32 +428,49 @@ async def fill_chat(chat_id, convert_voice_message):
 
                     case "sticker" if message["mime_type"] == "video/webm":
                         r: SendFileResponse = await users_object[from_id].send_document(
-                            chat_id=chat_id, file=FSInputFile(path=telegram_export_dir / check_file(file)))
+                            chat_id=chat_id,
+                            file=FSInputFile(path=telegram_export_dir / check_file(file)),
+                            reply_message_id=message_id
+                        )
                         map_message_ids[message["id"]].append(r.message_id)
 
                     case "sticker" if message["mime_type"] == "image/webp":
                         r: SendFileResponse = await users_object[from_id].send_sticker(
-                            chat_id=chat_id, file=FSInputFile(path=telegram_export_dir / check_file(file)))
+                            chat_id=chat_id,
+                            file=FSInputFile(path=telegram_export_dir / check_file(file)),
+                            reply_message_id=message_id
+                        )
                         map_message_ids[message["id"]].append(r.message_id)
 
                     case "sticker" if message["mime_type"] == "application/x-tgsticker":
-                        animation = parse_tgs(str(telegram_export_dir / check_file(file)))
-                        buf = io.BytesIO()
-                        export_webp(
-                            animation,
-                            buf,
-                            quality=50,
-                            skip_frames=4
-                        )
-                        buf.seek(0)
-                        r: SendFileResponse = await users_object[message["from_id"]].send_sticker(
-                            chat_id=chat_id, file=BufferedInputFile(
-                                file=buf.getvalue(),
-                                filename="AnimatedSticker.webp",
-                                mimetype="image/webp",
-                                file_size=len(buf.getbuffer())
+                        if IS_TGS_STICKER:
+                            animation = parse_tgs(str(telegram_export_dir / check_file(file)))
+                            buf = io.BytesIO()
+                            export_webp(
+                                animation,
+                                buf,
+                                quality=50,
+                                skip_frames=4
                             )
-                        )
+                            buf.seek(0)
+                            r: SendFileResponse = await users_object[message["from_id"]].send_sticker(
+                                chat_id=chat_id,
+                                file=BufferedInputFile(
+                                    file=buf.getvalue(),
+                                    filename="AnimatedSticker.webp",
+                                    mimetype="image/webp",
+                                    file_size=len(buf.getbuffer())
+                                ),
+                                reply_message_id=message_id
+                            )
+                        else:
+                            r: SendMessageResponse = await users_object[message["from_id"]].send_message(
+                                chat_id=chat_id,
+                                text=message["sticker_emoji"],
+                                parse_mode=ParseMode.TEXT,
+                                reply_message_id=message_id
+                            )
+
                         map_message_ids[message["id"]].append(r.message_id)
 
             elif message.get("file", False):
@@ -457,7 +484,7 @@ async def fill_chat(chat_id, convert_voice_message):
                 map_message_ids[message["id"]].append(r.message_id)
 
             else:
-                r: SendFileResponse = await users_object[from_id].send_message(
+                r: SendMessageResponse = await users_object[from_id].send_message(
                     chat_id=chat_id,
                     text=text,
                     parse_mode=ParseMode.HTML,

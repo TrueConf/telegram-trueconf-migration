@@ -504,6 +504,30 @@ export source and the time when the original recording was made.
   <img src="assets/example_voice_message_en.png" alt="Chatbot Auth Page" width="800" height="auto">
 </p>
 
+### Converting Telegram Stickers (tgs) to WebP
+
+Animated Telegram stickers are in **.tgs** format, which is a [Lottie](https://github.io) animation archive.
+You can disable the conversion of Telegram stickers to WebP using the `chat.stickers.convert_telegram_stickers_to_webp` parameter. In this case, they will be sent simply as emojis.
+
+> [!IMPORTANT]
+> Conversion relies on system libraries that must be available on your system when the migration script is executed.
+
+#### Windows
+
+The **Cairo** system library is required. You can install it using [MSYS2](https://msys2.org). Follow these steps:
+
+1. Run the following command in the MSYS2 terminal:
+
+   ```bash
+   pacman -Syu
+   
+2. If the console displays a message like `warn: terminate MSYS2 without returning to shell and check for updates again` — close and restart the MSYS2 terminal.
+3. Install the library:
+
+   ```bash
+   pacman -S mingw-w64-x86_64-cairo
+   ```
+
 ### Migration start
 
 To start migration, run the command in the terminal:

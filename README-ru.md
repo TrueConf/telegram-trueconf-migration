@@ -484,6 +484,32 @@ cover_image = "path/to/cover_image.png"
   <img src="assets/example_voice_message_ru.png" alt="Chatbot Auth Page" width="800" height="auto">
 </p>
 
+### Конвертация Telegram стикеров (tgs) в WebP
+
+Анимированные стикеры Telegram представлены в формате **.tgs**. Это представляет собой архив с анимацией в формате [lottie](https://lottie.github.io/).
+Вы можете отключить конвертацию стикеров Telegram в формат WebP с помощью параметра `chat.stikers.convert_telegram_stikers_to_webp`. Тогда они будут отправлены просто как emoji. 
+
+> [!IMPORTANT]
+> Конвертация задествует системные библиотеки, которые должны быть доступны в системе на момент запуска скрипта по переносу чата. 
+
+#### Windows
+
+Требуется системная библиотека **Cairo**. Установить ее можно с помощью [MSYS2](https://www.msys2.org/). После этого:
+
+1. Запустите команду:
+
+   ```bash
+   pacman -Syu
+   ```
+
+2. Если в конце консоль напишет что-то вроде: `warn: terminate MSYS2 without returning to shell and check for updates `again` — перезапустите терминал.
+
+3. Установите библиотеку:
+
+   ```bash
+   pacman -S mingw-w64-x86_64-cairo
+   ```
+
 ### Запуск переноса
 
 Для запуска переноса выполните команду в терминале:
