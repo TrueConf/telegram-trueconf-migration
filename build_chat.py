@@ -281,16 +281,13 @@ def get_topic_id_iterative(start_msg_id, msg_map, topics_dict):
     path = []
 
     while curr_id not in memo:
-        # Проверяем, является ли текущий ID зарегистрированным топиком
         if curr_id in topics_dict:
             memo[curr_id] = curr_id
             break
 
         msg = msg_map.get(curr_id)
 
-        # Если сообщения нет в базе или оно — корень без родителя
         if not msg or 'reply_to_message_id' not in msg:
-            # Считаем, что это относится к основному чату (ID 1)
             memo[curr_id] = 1
             break
 
@@ -298,10 +295,8 @@ def get_topic_id_iterative(start_msg_id, msg_map, topics_dict):
         path.append(curr_id)
         curr_id = msg['reply_to_message_id']
 
-    # Вытаскиваем финальный ID топика из кеша
     root_topic_id = memo[curr_id]
 
-    # Прописываем этот топик всей пройденной цепочке (Path Compression)
     for msg_id in path:
         memo[msg_id] = root_topic_id
 
@@ -358,7 +353,7 @@ async def fill_chat(chat_id, convert_voice_message):
             raise FileNotIncluded("File not included. Change data exporting settings to download.")
         else:
             return file
-    for count, message in enumerate(data["messages"]):
+    for count, message in enumerate(tqdm(data["messages"])):
         map_message_ids[message["id"]] = []
         file = message.get("file", "")
         text, message_id = None, None
