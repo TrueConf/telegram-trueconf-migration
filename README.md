@@ -30,6 +30,10 @@
   <a href="./README-ru.md">Русский</a>
 </p>
 
+> [!CAUTION]
+> These instructions apply to TrueConf Server v5.5.3 or later.
+If you are running an earlier version, [update the server](https://trueconf.com/products/server/howto-update-trueconf-server.html) first.
+
 ## Getting started
 
 To migrate chats from Telegram to TrueConf, you need to:
@@ -47,7 +51,7 @@ You will also need:
 - Installed [Telegram Desktop](https://desktop.telegram.org/) application
 - Deployed [TrueConf
 Server](https://trueconf.com/products/tcsf/free-video-conferencing-server.html)
-version 5.5 or higher
+version 5.5.3 or higher
 ([guide](https://trueconf.com/docs/server/en/admin/server-part/))
 - Python 3.11 or higher
 - A little bit of patience.
