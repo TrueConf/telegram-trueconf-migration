@@ -1,6 +1,7 @@
 telegram_export_dir = ""
 
 [telegram_bot]
+enabled = false
 token = ""
 chat_id = ""
 
