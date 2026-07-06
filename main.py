@@ -35,7 +35,7 @@ from PyQt6.QtWidgets import (
     QProgressBar,
 )
 from PyQt6.QtWidgets import QAbstractScrollArea
-from PyQt6.QtCore import Qt, QSize, QTimeZone, QSettings, QObject, QThread, pyqtSignal, QEventLoop
+from PyQt6.QtCore import Qt, QSize, QTimeZone, QSettings, QObject, QThread, pyqtSignal, QEventLoop, QTimer
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QFont, QColor, QPixmap, QIcon
 import qtawesome as qta
 from PyQt6.QtSvgWidgets import QSvgWidget
@@ -246,6 +246,50 @@ class ElidedComboBox(QComboBox):
 
         painter.drawComplexControl(QStyle.ComplexControl.CC_ComboBox, option)
         painter.drawControl(QStyle.ControlElement.CE_ComboBoxLabel, option)
+
+
+class ResizableTable(QTableWidget):
+    """QTableWidget, который вызывает _resize_user_table_columns при изменении размера."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        parent = self.parent()
+        while parent is not None:
+            if hasattr(parent, "_resize_user_table_columns"):
+                parent._resize_user_table_columns()
+                break
+            parent = parent.parent()
+
+
+class MutedHeaderView(QHeaderView):
+    """Заголовок таблицы с приглушённым оформлением для колонок Telegram-бота."""
+
+    MUTED_COLUMNS = {5, 6}
+
+    def __init__(self, orientation, parent=None):
+        super().__init__(orientation, parent)
+
+    def paintSection(self, painter, rect, logicalIndex):
+        if logicalIndex in self.MUTED_COLUMNS:
+            painter.save()
+            painter.fillRect(rect, QColor("#F3F4F6"))
+            painter.setPen(QColor("#D7E9EE"))
+            painter.drawLine(rect.topLeft(), rect.bottomLeft())
+            painter.drawLine(rect.topRight(), rect.bottomRight())
+            painter.setPen(QColor("#0088CC"))
+            font = self.font()
+            font.setPixelSize(12)
+            font.setBold(True)
+            painter.setFont(font)
+            text = self.model().headerData(logicalIndex, self.orientation(), Qt.ItemDataRole.DisplayRole)
+            text_rect = rect.adjusted(0, 0, 0, 0)
+            painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, str(text) if text else "")
+            painter.restore()
+        else:
+            super().paintSection(painter, rect, logicalIndex)
 
 
 class DragDropArea(QFrame):
@@ -490,6 +534,13 @@ class FirstScreen(QWidget):
 class SettingsScreen(QWidget):
     """Экран настроек переноса"""
 
+    EMAIL_DOMAIN_TOOLTIP = (
+        "Нужен только для регистрации пользователей: новый сервер (режим Registry) "
+        "или переключение с LDAP на Registry.<br><br>"
+        "Email формируется автоматически из TrueConf ID и домена:<br>"
+        "vasya_ivanov + mail.mycompany.ru → vasya_ivanov@mail.mycompany.ru"
+    )
+
     def __init__(
         self,
         folder_path,
@@ -545,6 +596,29 @@ class SettingsScreen(QWidget):
 
             item.setText(password)
         self.users_table.blockSignals(False)
+
+    def _resize_user_table_columns(self):
+        table = self.users_table
+        min_widths = self._col_min_widths
+        total_min = sum(min_widths)
+        viewport_width = table.viewport().width()
+        extra = max(0, viewport_width - total_min)
+
+        self._is_resizing_columns = True
+        for col in range(len(min_widths)):
+            new_width = min_widths[col] + extra * self._col_ratios[col]
+            table.setColumnWidth(col, int(new_width))
+        self._is_resizing_columns = False
+
+    def _on_user_table_section_resized(self, logical_index, _old_size, _new_size):
+        if self._is_resizing_columns:
+            return
+        table = self.users_table
+        total = sum(table.columnWidth(c) for c in range(table.columnCount()))
+        if total > 0:
+            self._col_ratios = [
+                table.columnWidth(c) / total for c in range(table.columnCount())
+            ]
 
     def load_form_from_toml(self):
         config_file = Path(self.config_path)
@@ -640,12 +714,12 @@ class SettingsScreen(QWidget):
             table.insertRow(row_index)
             row_values = [
                 str(user_data.get("telegram_id", "")),
-                str(user_data.get("access_token", "")),
                 str(user_data.get("trueconf_id", "")),
+                str(user_data.get("access_token", "")),
                 str(user_data.get("password", "")),
                 str(user_data.get("display_name", "")),
-                str(user_data.get("username", "")),
                 str(user_data.get("real_display_name", "")),
+                str(user_data.get("username", "")),
             ]
             for column_index, cell_value in enumerate(row_values):
                 item = self._create_user_table_item(
@@ -727,7 +801,7 @@ class SettingsScreen(QWidget):
                 item = self.users_table.item(row, col)
                 values.append(item.text().strip() if item is not None else "")
 
-            telegram_id, access_token, trueconf_id, password, display_name, username, real_display_name = values
+            telegram_id, trueconf_id, access_token, password, display_name, real_display_name, username = values
 
             key_item = self.users_table.item(row, 0)
             stored_key = key_item.data(Qt.ItemDataRole.UserRole) if key_item is not None else None
@@ -765,17 +839,19 @@ class SettingsScreen(QWidget):
 
         for row in range(self.users_table.rowCount()):
             telegram_item = self.users_table.item(row, 0)
-            access_token_item = self.users_table.item(row, 1)
-            trueconf_item = self.users_table.item(row, 2)
+            trueconf_item = self.users_table.item(row, 1)
+            access_token_item = self.users_table.item(row, 2)
             password_item = self.users_table.item(row, 3)
             display_name_item = self.users_table.item(row, 4)
-            username_item = self.users_table.item(row, 5)
+            real_name_item = self.users_table.item(row, 5)
+            username_item = self.users_table.item(row, 6)
 
             telegram_id = telegram_item.text().strip() if telegram_item is not None else ""
             access_token = access_token_item.text().strip() if access_token_item is not None else ""
             trueconf_id = trueconf_item.text().strip() if trueconf_item is not None else ""
             password = password_item.text().strip() if password_item is not None else ""
             display_name = display_name_item.text().strip() if display_name_item is not None else ""
+            real_name = real_name_item.text().strip() if real_name_item is not None else ""
             username = username_item.text().strip() if username_item is not None else ""
 
             user_key = ""
@@ -817,7 +893,7 @@ class SettingsScreen(QWidget):
         duplicate_trueconf_ids = set()
         trueconf_id_rows: dict[str, list[int]] = {}
         for row in range(table.rowCount()):
-            item = table.item(row, 2)
+            item = table.item(row, 1)
             value = item.text().strip() if item is not None else ""
             if not value:
                 continue
@@ -832,12 +908,12 @@ class SettingsScreen(QWidget):
         try:
             for row in range(table.rowCount()):
                 telegram_id_item = table.item(row, 0)
-                access_token_item = table.item(row, 1)
-                trueconf_id_item = table.item(row, 2)
+                trueconf_id_item = table.item(row, 1)
+                access_token_item = table.item(row, 2)
                 password_item = table.item(row, 3)
                 display_name_item = table.item(row, 4)
-                username_item = table.item(row, 5)
-                real_name_item = table.item(row, 6)
+                real_name_item = table.item(row, 5)
+                username_item = table.item(row, 6)
 
                 telegram_id = telegram_id_item.text().strip() if telegram_id_item else ""
                 access_token = access_token_item.text().strip() if access_token_item else ""
@@ -857,6 +933,7 @@ class SettingsScreen(QWidget):
                 for item in (username_item, real_name_item):
                     if item is not None:
                         item.setForeground(QColor("#6B7280"))
+                        item.setBackground(QColor("#F9FAFB"))
 
                 if not telegram_id and telegram_id_item is not None:
                     telegram_id_item.setBackground(QColor("#FFF4BF"))
@@ -1460,11 +1537,12 @@ class SettingsScreen(QWidget):
             'Если пользователи уже созданы на сервере, укажите <b>Telegram ID</b> и <b>Токен</b>, '
             'а если токен недоступен, можно использовать <b>TrueConf ID</b> и <b>Пароль</b>. '
             'Если пользователей на сервере ещё нет, предварительно зарегистрируйте их с помощью приложения или вручную. '
-            'Для регистрации дополнительно требуется <b>Отобр. имя</b>, при этом email будет создан автоматически по шаблону '
-            '<code>trueconf_id@домен</code>. Информацию о получении <b>access token</b> см. в документации.'
+            'Для регистрации дополнительно требуется <b>Имя в TrueConf (DN)</b> – отображаемое имя пользователя, при этом email будет создан автоматически по шаблону '
+            '<code>trueconf_id@домен</code>. Информацию о получении <b>access token</b> см. в <a href="https://github.com/TrueConf/telegram-trueconf-migration/blob/main/README-ru.md#%D1%80%D0%B5%D0%B3%D0%B8%D1%81%D1%82%D1%80%D0%B0%D1%86%D0%B8%D1%8F-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D0%B5%D0%B9-%D0%B2-trueconf-server">документации</a>.'
         )
         text.setWordWrap(True)
         text.setTextFormat(Qt.TextFormat.RichText)
+        text.setOpenExternalLinks(True)
         text.setStyleSheet("font-size: 13px; color: #5E7486; line-height: 1.4;")
 
         close_button = QPushButton("Понятно")
@@ -1632,6 +1710,22 @@ class SettingsScreen(QWidget):
                 color: #8AA1AF;
                 border: 1px solid #D7E9EE;
             }
+            QMenu {
+                background-color: #FFFFFF;
+                color: #163047;
+                border: 1px solid #D7E9EE;
+                padding: 4px;
+            }
+            QMenu::item {
+                padding: 4px 20px;
+            }
+            QMenu::item:selected {
+                background-color: #EAF8FB;
+                color: #163047;
+            }
+            QMenu::item:disabled {
+                color: #8AA1AF;
+            }
             QComboBox::drop-down {
                 border: none;
                 padding-right: 8px;
@@ -1676,6 +1770,22 @@ class SettingsScreen(QWidget):
                 width: 20px;
                 border: none;
                 background: transparent;
+            }
+            QMenu {
+                background-color: #FFFFFF;
+                color: #163047;
+                border: 1px solid #D7E9EE;
+                padding: 4px;
+            }
+            QMenu::item {
+                padding: 4px 20px;
+            }
+            QMenu::item:selected {
+                background-color: #EAF8FB;
+                color: #163047;
+            }
+            QMenu::item:disabled {
+                color: #8AA1AF;
             }
             """
         )
@@ -2064,24 +2174,25 @@ class SettingsScreen(QWidget):
         password_row.setSpacing(8)
         password_row.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
-        password_label = self._create_hint_label("Пароль для регистрации")
+        password_label = self._create_hint_label("Общий пароль")
         password_label.setWordWrap(False)
         self.registration_password_input = QLineEdit()
         self._apply_input_style(self.registration_password_input)
         self.registration_password_input.setPlaceholderText("Например: 12345678")
-        self.registration_password_input.setFixedWidth(120)
+        self.registration_password_input.setFixedWidth(150)
         self.registration_password_input.setFixedHeight(30)
         self.registration_password_input.setStyleSheet(
             self.registration_password_input.styleSheet()
             + "QLineEdit { min-height: 30px; font-size: 12px; padding: 0 10px; }"
         )
         self.registration_password_input.textChanged.connect(self._apply_registration_password_to_table)
-
-        email_domain_label = self._create_hint_label("Email домен")
+        email_domain_label = self._create_hint_label("Email-домен")
         email_domain_label.setWordWrap(False)
+
         self.registration_email_domain_input = QLineEdit()
         self._apply_input_style(self.registration_email_domain_input)
         self.registration_email_domain_input.setPlaceholderText("example.com")
+        self.registration_email_domain_input.setToolTip(self.EMAIL_DOMAIN_TOOLTIP)
         self.registration_email_domain_input.setFixedWidth(112)
         self.registration_email_domain_input.setFixedHeight(30)
         self.registration_email_domain_input.setStyleSheet(
@@ -2126,16 +2237,17 @@ class SettingsScreen(QWidget):
         users_header_row.addStretch(1)
         users_header_row.addLayout(user_actions_layout, 0)
 
-        self.users_table = QTableWidget(0, 7)
+        self.users_table = ResizableTable(0, 7)
+        self.users_table.setHorizontalHeader(MutedHeaderView(Qt.Orientation.Horizontal, self.users_table))
         self.users_table.setHorizontalHeaderLabels(
             [
                 "Telegram ID",
-                "Токен",
                 "TrueConf ID",
+                "Токен",
                 "Пароль",
-                "Отобр. имя",
-                "@username",
-                "Реальное имя",
+                "Имя в TrueConf (DN)",
+                "Имя в Telegram",
+                "Юзернейм (@)",
             ]
         )
         self.users_table.verticalHeader().setVisible(False)
@@ -2167,6 +2279,7 @@ class SettingsScreen(QWidget):
                 color: #3097A6;
                 border: none;
                 border-bottom: 1px solid #D7E9EE;
+                border-right: 1px solid #D7E9EE;
                 padding: 10px;
                 font-size: 12px;
                 font-weight: 700;
@@ -2191,15 +2304,20 @@ class SettingsScreen(QWidget):
             }
             """
         )
-        self.users_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
-        self.users_table.horizontalHeader().setStretchLastSection(False)
+        self._is_resizing_columns = False
+        self._col_min_widths = [140, 165, 140, 100, 205, 170, 180]
+        self._col_ratios = [w / sum(self._col_min_widths) for w in self._col_min_widths]
+
         self.users_table.setColumnWidth(0, 140)  # Telegram ID
-        self.users_table.setColumnWidth(1, 140)  # Токен
-        self.users_table.setColumnWidth(2, 165)  # TrueConf ID
+        self.users_table.setColumnWidth(1, 165)  # TrueConf ID
+        self.users_table.setColumnWidth(2, 140)  # Токен
         self.users_table.setColumnWidth(3, 100)  # Пароль
-        self.users_table.setColumnWidth(4, 205)  # Отобр. имя
-        self.users_table.setColumnWidth(5, 140)  # @username
-        self.users_table.setColumnWidth(6, 180)  # Реальное имя
+        self.users_table.setColumnWidth(4, 180)  # Отобр. имя
+        self.users_table.setColumnWidth(5, 170)  # Имя в Telegram
+        self.users_table.setColumnWidth(6, 180)  # Юзернейм (@)
+
+        self.users_table.horizontalHeader().sectionResized.connect(self._on_user_table_section_resized)
+        QTimer.singleShot(0, self._resize_user_table_columns)
 
         users_layout.addLayout(users_header_row)
 
@@ -2364,7 +2482,6 @@ class SettingsScreen(QWidget):
         users_tab_layout.setContentsMargins(0, 0, 0, 0)
         users_tab_layout.setSpacing(10)
         users_tab_layout.addWidget(users_card)
-        users_tab_layout.addStretch()
 
         self.tabs.addTab(server_tab, "Подключения")
         self.tabs.addTab(chat_tab, "Чат")
@@ -2409,7 +2526,7 @@ class SettingsScreen(QWidget):
         shell_layout.addWidget(self.tabs)
 
 
-        root_layout.addWidget(settings_shell)
+        root_layout.addWidget(settings_shell, 1)
         root_layout.addWidget(footer_card)
 
 
@@ -2640,7 +2757,7 @@ default_password = ""
         super().__init__()
         self.setWindowIcon(QIcon(get_resource_path("assets/icon.png")))
         self.setWindowTitle("Перенос чатов из Telegram в TrueConf")
-        self.setFixedSize(1180, 820)
+        self.setMinimumSize(1200, 820)
 
         app_font = QFont("Roboto", 10)
         self.setFont(app_font)
@@ -2714,6 +2831,32 @@ def main():
     log_path = setup_file_logging()
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon(get_resource_path("assets/icon.png")))
+    app.setStyleSheet("""
+        QMenu {
+            background-color: #FFFFFF;
+            color: #163047;
+            border: 1px solid #D7E9EE;
+            padding: 4px;
+        }
+        QMenu::item {
+            padding: 4px 20px;
+        }
+        QMenu::item:selected {
+            background-color: #EAF8FB;
+            color: #163047;
+        }
+        QMenu::item:disabled {
+            color: #8AA1AF;
+        }
+        QToolTip {
+            background-color: #FFFFFF;
+            color: #163047;
+            border: 1px solid #D7E9EE;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 11px;
+        }
+    """)
 
     window = MainWindow()
     LOGGER.info("Main window initialized, log file: %s", log_path)
