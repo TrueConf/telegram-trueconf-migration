@@ -1,0 +1,164 @@
+ru:
+  app:
+    title: "Перенос чатов из Telegram в TrueConf"
+
+  first_screen:
+    drop_here: "Перетащите папку сюда"
+    export_from: "Экспорт из Telegram Desktop"
+    browse: "Выбрать папку"
+    folder_dialog: "Выберите папку экспорта Telegram Desktop"
+    invalid_folder: "Некорректная папка"
+    invalid_folder_msg: "В выбранной папке не найден файл result.json.\nВыберите папку экспорта Telegram Desktop."
+
+  settings:
+    title: "Настройки переноса"
+    source_badge: "Источник: %{path}  |  Конфиг: %{config}"
+    tabs:
+      connections: "Подключения"
+      chat: "Чат"
+      users: "Пользователи"
+
+  media:
+    title: "Опции переноса"
+    voice_to_video: "Голосовые → видео"
+    ffmpeg_warning: "Для конвертации голосовых нужен установленный FFmpeg."
+    cover_label: "Обложка для голосовых"
+    stickers: "Стикеры .tgs → .webp"
+    cairo_warning: "Для конвертации .tgs в .webp на Windows нужны системные библиотеки Cairo."
+    stickers_note: "Если выключено, .tgs будут заменены на emoji"
+    datetime: "Добавлять дату и время"
+    datetime_label: "Подпись даты и времени"
+    caption_placeholder: "Подпись перед датой"
+    caption_default: "Отправлено: "
+
+  chat:
+    title: "Параметры чата"
+    name_label: "Название чата"
+    name_placeholder: "Например: Секретный чат"
+    owner_label: "Владелец чата"
+    owner_placeholder: "Например: sherlock"
+    type_label: "Тип чата"
+    type_personal: "Личный"
+    type_group: "Группа"
+    type_channel: "Канал"
+    type_supergroup: "Супергруппа"
+    template_label: "Шаблон темы"
+
+  telegram_bot:
+    title: "Настройки Telegram Bot"
+    token_label: "Токен из BotFather"
+    token_placeholder: "11223344:dslkfjsdfjksdfwqerpo9lkxcjv"
+    chat_id_label: "ID чата"
+    chat_id_placeholder: "В формате -10011223344"
+    enrich: "Получить доп. данные с помощью бота"
+    enrich_hint: "При обновлении списка участников на вкладке «Пользователи» бот получит @username и реальное отображаемое имя каждого участника. Бот должен быть заранее добавлен в целевой чат с правами администратора."
+
+  server:
+    title: "Настройки сервера"
+    address_label: "Адрес"
+    address_placeholder: "например, server.example.com"
+    port_label: "Веб-порт"
+    ssl_label: "Проверка SSL"
+    ssl_off: "Выключена"
+    ssl_on: "Включена"
+    token_label: "Токен доступа (для регистрации пользователей)"
+    token_placeholder: "Bearer-токен из Веб → Безопасность"
+
+  users:
+    title: "Пользователи"
+    password_label: "Общий пароль"
+    password_placeholder: "Например: 12345678"
+    email_domain_label: "Email-домен"
+    email_domain_tooltip: >-
+      Нужен только для регистрации пользователей: новый сервер (режим Registry)
+      или переключение с LDAP на Registry.<br><br>
+      Email формируется автоматически из TrueConf ID и домена:<br>
+      vasya_ivanov + mail.mycompany.ru → vasya_ivanov@mail.mycompany.ru
+    refresh_tooltip: "Обновить пользователей"
+    register_tooltip: "Регистрация пользователей на сервере"
+    headers:
+      telegram_id: "Telegram ID"
+      trueconf_id: "TrueConf ID"
+      token: "Токен"
+      password: "Пароль"
+      display_name: "Отобр. имя"
+      real_name: "Имя в Telegram"
+      username: "Юзернейм (@)"
+
+  table_info:
+    title: "Как использовать таблицу"
+    title_full: "Как использовать таблицу пользователей"
+    description: >-
+      Таблица используется для сопоставления участников <b>Telegram</b> с пользователями <b>TrueConf</b> при переносе чата.
+      Если пользователи уже созданы на сервере, укажите <b>Telegram ID</b> и <b>Токен</b>,
+      а если токен недоступен, можно использовать <b>TrueConf ID</b> и <b>Пароль</b>.
+      Если пользователей на сервере ещё нет, предварительно зарегистрируйте их с помощью приложения или вручную.
+      Для регистрации дополнительно требуется <b>Имя в TrueConf (DN)</b> – отображаемое имя пользователя, при этом email будет создан автоматически по шаблону
+      <code>trueconf_id@домен</code>. Информацию о получении <b>access token</b> см. в <a href="https://github.com/TrueConf/telegram-trueconf-migration/blob/main/README-ru.md#%D1%80%D0%B5%D0%B3%D0%B8%D1%81%D1%82%D1%80%D0%B0%D1%86%D0%B8%D1%8F-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D0%B5%D0%B9-%D0%B2-trueconf-server">документации</a>.
+
+  buttons:
+    back: "Назад"
+    apply: "Применить"
+    apply_tooltip: "Сохранить изменения в конфиг файл"
+    run: "Начать перенос"
+    close: "Закрыть"
+    cancel: "Отменить перенос"
+    understand: "Понятно"
+    select_file: "Выбрать файл"
+
+  progress:
+    title: "Перенос чата в TrueConf"
+    preparing: "Подготавливаем перенос..."
+    messages: "Сообщения: %{current} / %{total}"
+    transferring: "Идёт перенос сообщений..."
+    stopping: "Останавливаем перенос..."
+    events: "События и ошибки"
+
+  results:
+    success: "Перенос чата завершён успешно."
+    chat_name: "Чат: %{name}"
+    chat_type: "Тип: %{type}"
+    chat_id: "ID созданного чата: %{id}"
+    registration_title: "Результат регистрации пользователей"
+    registered: "Зарегистрированы"
+    already_exist: "Уже существуют на сервере"
+    errors: "Ошибки"
+    no_details: "Операция завершена, но сервер не вернул подробный результат."
+
+  dialogs:
+    wait: "Пожалуйста, подождите"
+    parse_users: "Обновляем пользователей из экспорта Telegram..."
+    register_users: "Регистрируем пользователей на сервере TrueConf..."
+    build_chat: "Переносим чат в TrueConf..."
+    config_error: "Ошибка конфигурации"
+    config_error_msg: "Не удалось подготовить конфиг для выбранного чата.\n%{error}"
+    save_error: "Ошибка сохранения"
+    save_error_msg: "Не удалось сохранить изменения в TOML.\n%{error}"
+    refresh_error: "Ошибка обновления пользователей"
+    refresh_error_msg: "Не удалось обновить пользователей.\n%{error}"
+    register_error: "Ошибка регистрации пользователей"
+    register_error_msg: "Не удалось зарегистрировать пользователей на сервере.\n%{error}"
+    transfer_error: "Ошибка переноса"
+    transfer_error_msg: "Не удалось перенести чат в TrueConf.\n\n%{error}"
+    transfer_stopped: "Перенос остановлен"
+    transfer_stopped_msg: "Перенос чата был остановлен пользователем."
+    transfer_complete: "Перенос завершён"
+    unknown_error: "Неизвестная ошибка"
+    bot_data_needed: "Нужны данные Telegram Bot"
+    bot_data_needed_msg: >-
+      Включено получение дополнительных данных через Telegram Bot.
+
+      Заполните поля «Токен из BotFather» и «ID чата» на вкладке «Подключения».
+      Нажимать «Применить» перед обновлением не нужно — текущие значения будут сохранены автоматически.
+
+  tooltips:
+    show_hint: "Показать подсказку"
+    select_cover: "Выберите изображение-заглушку"
+    no_telegram_id: "Укажите Telegram ID для сопоставления участника."
+    need_token_or_creds: "Нужен access token или связка TrueConf ID + Пароль."
+    need_display_name: "Для регистрации на сервере требуется отображаемое имя."
+    duplicate_trueconf_id: "Duplicate TrueConf ID: значение должно быть уникальным."
+
+  lang:
+    ru: "Русский"
+    en: "English"

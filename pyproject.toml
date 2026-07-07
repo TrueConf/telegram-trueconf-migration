@@ -19,5 +19,6 @@ dependencies = [
     "tomlkit>=0.14.0",
     "tqdm>=4.67.3",
     "tzdata>=2026.1",
+    "i18nice[yaml]>=0.16.0",
 ]
 

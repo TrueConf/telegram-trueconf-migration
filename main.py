@@ -24,6 +24,7 @@ from PyQt6.QtWidgets import (
     QTableWidgetItem,
     QHeaderView,
     QToolButton,
+    QMenu,
     QTabWidget,
     QSpinBox,
     QStylePainter,
@@ -35,7 +36,7 @@ from PyQt6.QtWidgets import (
     QProgressBar,
 )
 from PyQt6.QtWidgets import QAbstractScrollArea
-from PyQt6.QtCore import Qt, QSize, QTimeZone, QSettings, QObject, QThread, pyqtSignal, QEventLoop, QTimer
+from PyQt6.QtCore import Qt, QSize, QTimeZone, QSettings, QLocale, QObject, QThread, pyqtSignal, QEventLoop, QTimer
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QFont, QColor, QPixmap, QIcon
 import qtawesome as qta
 from PyQt6.QtSvgWidgets import QSvgWidget
@@ -48,6 +49,7 @@ import add_users_to_server
 LOGGER.info("add_users_to_server imported successfully")
 import build_chat
 LOGGER.info("build_chat imported successfully")
+from localization import _, setup_i18n
 
 try:
     import pyi_splash
@@ -324,14 +326,14 @@ class DragDropArea(QFrame):
             )
         )
 
-        self.title_label = QLabel("Перетащите папку сюда")
+        self.title_label = QLabel(_("first_screen.drop_here"))
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.title_label.setWordWrap(False)
         self.title_label.setStyleSheet(
             "font-size: 18px; font-weight: 700; color: #163047; background: transparent; border: none;"
         )
 
-        self.subtitle_label = QLabel("Экспорт из Telegram Desktop")
+        self.subtitle_label = QLabel(_("first_screen.export_from"))
         self.subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.subtitle_label.setStyleSheet(
             "font-size: 14px; color: #5E7486; background: transparent; border: none;"
@@ -452,7 +454,71 @@ class FirstScreen(QWidget):
         brand_label.setFixedSize(scaled_logo_size)
         brand_label.setStyleSheet("background: transparent;")
 
-        title = QLabel("Перенос чатов из Telegram в TrueConf")
+        current_lang = self.settings.value("lang", "ru")
+
+        self.lang_button = QToolButton()
+        self.lang_button.setText("🌐")
+        self.lang_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.lang_button.setFixedSize(42, 42)
+        self.lang_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.lang_button.setStyleSheet(
+            """
+            QToolButton {
+                background-color: #EAF8FB;
+                color: #3097A6;
+                border: 1px solid #B9E5EC;
+                border-radius: 21px;
+                font-size: 20px;
+                padding: 0;
+            }
+            QToolButton:hover {
+                background-color: #DDF5F8;
+                border: 1px solid #3BB4C8;
+            }
+            QToolButton::menu-indicator {
+                width: 0;
+                height: 0;
+            }
+            """
+        )
+
+        lang_menu = QMenu(self.lang_button)
+        lang_menu.setStyleSheet(
+            """
+            QMenu {
+                background-color: #FFFFFF;
+                color: #163047;
+                border: 1px solid #D7E9EE;
+                border-radius: 10px;
+                padding: 6px;
+                font-size: 14px;
+            }
+            QMenu::item {
+                padding: 8px 24px;
+                border-radius: 6px;
+            }
+            QMenu::item:selected {
+                background-color: #EAF8FB;
+                color: #163047;
+            }
+            """
+        )
+
+        for lang_code, lang_label in [("ru", "🇷🇺  Русский"), ("en", "🇬🇧  English")]:
+            action = lang_menu.addAction(lang_label)
+            action.setCheckable(True)
+            action.setChecked(lang_code == current_lang)
+            action.triggered.connect(lambda checked, code=lang_code: self._on_lang_selected(code))
+
+        self.lang_button.setMenu(lang_menu)
+
+        header_row = QHBoxLayout()
+        header_row.setSpacing(10)
+        header_row.addWidget(brand_label)
+        header_row.addStretch()
+        header_row.addWidget(self.lang_button)
+
+        title = QLabel(_("app.title"))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setWordWrap(True)
         title.setStyleSheet(
@@ -471,7 +537,7 @@ class FirstScreen(QWidget):
         buttons_layout.setSpacing(14)
         buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.browse_button = QPushButton("Выбрать папку")
+        self.browse_button = QPushButton(_("first_screen.browse"))
         self.browse_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.browse_button.setFixedHeight(52)
         self.browse_button.setMinimumWidth(220)
@@ -499,10 +565,7 @@ class FirstScreen(QWidget):
 
         buttons_layout.addWidget(self.browse_button)
 
-        card_layout.addWidget(
-            brand_label,
-            alignment=Qt.AlignmentFlag.AlignHCenter,
-        )
+        card_layout.addLayout(header_row)
         card_layout.addWidget(title)
         card_layout.addSpacing(6)
         card_layout.addWidget(self.drop_area)
@@ -517,7 +580,7 @@ class FirstScreen(QWidget):
     def browse_folder(self):
         last_dir = self.settings.value("last_export_dir", str(Path.home()))
 
-        dialog = QFileDialog(self, "Выберите папку экспорта Telegram Desktop")
+        dialog = QFileDialog(self, _("first_screen.folder_dialog"))
         dialog.setFileMode(QFileDialog.FileMode.Directory)
         dialog.setOption(QFileDialog.Option.ShowDirsOnly, True)
         dialog.setDirectory(str(last_dir))
@@ -530,16 +593,18 @@ class FirstScreen(QWidget):
                 self.settings.setValue("last_export_dir", folder)
                 self.on_folder_selected(folder)
 
+    def _on_lang_selected(self, lang):
+        if lang and lang != self.settings.value("lang", "ru"):
+            self.settings.setValue("lang", lang)
+            app = QApplication.instance()
+            if app:
+                app.exit(42)
+
 
 class SettingsScreen(QWidget):
     """Экран настроек переноса"""
 
-    EMAIL_DOMAIN_TOOLTIP = (
-        "Нужен только для регистрации пользователей: новый сервер (режим Registry) "
-        "или переключение с LDAP на Registry.<br><br>"
-        "Email формируется автоматически из TrueConf ID и домена:<br>"
-        "vasya_ivanov + mail.mycompany.ru → vasya_ivanov@mail.mycompany.ru"
-    )
+    EMAIL_DOMAIN_TOOLTIP = _("users.email_domain_tooltip")
 
     def __init__(
         self,
@@ -652,7 +717,7 @@ class SettingsScreen(QWidget):
             self.server_port_input.setValue(443)
 
         verify_ssl = bool(server.get("verify_ssl", False))
-        self.server_verify_ssl_combo.setCurrentText("Включена" if verify_ssl else "Выключена")
+        self.server_verify_ssl_combo.setCurrentText(_("server.ssl_on") if verify_ssl else _("server.ssl_off"))
         self.server_access_token_input.setText(str(server.get("access_token", "")))
 
         self.chat_name_input.setText(str(chat.get("name", "")))
@@ -685,7 +750,7 @@ class SettingsScreen(QWidget):
         if timezone_index >= 0:
             self.timezone_combo.setCurrentIndex(timezone_index)
 
-        self.caption_input.setText(str(chat_datetime.get("caption", "Отправлено: ")))
+        self.caption_input.setText(str(chat_datetime.get("caption", _("media.caption_default"))))
         self.registration_password_input.setText(str(registration.get("default_password", "")))
         self.registration_email_domain_input.setText(str(registration.get("email_domain", "")))
 
@@ -775,7 +840,7 @@ class SettingsScreen(QWidget):
 
         config["server"]["address"] = self.server_address_input.text().strip()
         config["server"]["web_port"] = int(self.server_port_input.value())
-        config["server"]["verify_ssl"] = self.server_verify_ssl_combo.currentText() == "Включена"
+        config["server"]["verify_ssl"] = self.server_verify_ssl_combo.currentText() == _("server.ssl_on")
         config["server"]["access_token"] = self.server_access_token_input.text().strip()
         config["registration"]["default_password"] = self.registration_password_input.text().strip()
         config["registration"]["email_domain"] = self.registration_email_domain_input.text().strip()
@@ -937,22 +1002,22 @@ class SettingsScreen(QWidget):
 
                 if not telegram_id and telegram_id_item is not None:
                     telegram_id_item.setBackground(QColor("#FFF4BF"))
-                    telegram_id_item.setToolTip("Укажите Telegram ID для сопоставления участника.")
+                    telegram_id_item.setToolTip(_("tooltips.no_telegram_id"))
 
                 if not access_token and not (trueconf_id and password):
                     for item in (access_token_item, trueconf_id_item, password_item):
                         if item is not None:
                             item.setBackground(QColor("#FFF4BF"))
-                            item.setToolTip("Нужен access token или связка TrueConf ID + Пароль.")
+                            item.setToolTip(_("tooltips.need_token_or_creds"))
 
                 if registration_active and not display_name and display_name_item is not None:
                     display_name_item.setBackground(QColor("#FFF4BF"))
-                    display_name_item.setToolTip("Для регистрации на сервере требуется отображаемое имя.")
+                    display_name_item.setToolTip(_("tooltips.need_display_name"))
 
                 if normalized_trueconf_id and normalized_trueconf_id in duplicate_trueconf_ids and trueconf_id_item is not None:
                     trueconf_id_item.setBackground(QColor("#FFD9D9"))
                     trueconf_id_item.setForeground(QColor("#A63B3B"))
-                    trueconf_id_item.setToolTip("Duplicate TrueConf ID: значение должно быть уникальным.")
+                    trueconf_id_item.setToolTip(_("tooltips.duplicate_trueconf_id"))
         finally:
             table.blockSignals(False)
 
@@ -1007,10 +1072,8 @@ class SettingsScreen(QWidget):
                 self.tabs.setCurrentIndex(0)
                 QMessageBox.information(
                     self,
-                    "Нужны данные Telegram Bot",
-                    "Включено получение дополнительных данных через Telegram Bot.\n\n"
-                    "Заполните поля «Токен из BotFather» и «ID чата» на вкладке «Подключения».\n"
-                    "Нажимать «Применить» перед обновлением не нужно — текущие значения будут сохранены автоматически.",
+                    _("dialogs.bot_data_needed"),
+                    _("dialogs.bot_data_needed_msg"),
                 )
                 return
 
@@ -1026,8 +1089,8 @@ class SettingsScreen(QWidget):
             LOGGER.exception("Failed to refresh users for config: %s", self.config_path)
             QMessageBox.warning(
                 self,
-                "Ошибка обновления пользователей",
-                f"Не удалось обновить пользователей.\n{error}",
+                _("dialogs.refresh_error"),
+                f"{_('dialogs.refresh_error_msg', error=error)}",
             )
 
     def _add_users_to_server(self):
@@ -1095,7 +1158,7 @@ class SettingsScreen(QWidget):
                 for error in errors:
                     user = escape_html(error.get("user", "—"))
                     status_code = escape_html(error.get("status_code", "—"))
-                    message = escape_html(error.get("message", "Неизвестная ошибка"))
+                    message = escape_html(error.get("message", _("dialogs.unknown_error")))
                     details = escape_html(error.get("details", ""))
                     line = f"{user} — {status_code} — {message}"
                     if details and details != "—":
@@ -1106,7 +1169,7 @@ class SettingsScreen(QWidget):
                 error_body = "<hr style='border:none; border-top:1px solid #E2EEF2; margin:0;'>".join(error_rows)
                 error_section = (
                     f"<div style='margin-bottom:18px;'>"
-                    f"<div style='font-size:14px; font-weight:700; color:#163047; margin-bottom:8px;'>🔴 Ошибки ({len(errors)})</div>"
+                    f"<div style='font-size:14px; font-weight:700; color:#163047; margin-bottom:8px;'>🔴 {_('results.errors')} ({len(errors)})</div>"
                     f"<div style='border:1px solid #D7E9EE; border-radius:12px; background:#FFFFFF; overflow:hidden;'>"
                     f"{error_body}"
                     f"</div>"
@@ -1114,8 +1177,8 @@ class SettingsScreen(QWidget):
                 )
 
             sections = []
-            created_section = format_section("Зарегистрированы", created, "✅")
-            already_exists_section = format_section("Уже существуют на сервере", already_exists, "⚠️")
+            created_section = format_section(_("results.registered"), created, "✅")
+            already_exists_section = format_section(_("results.already_exist"), already_exists, "⚠️")
             if created_section:
                 sections.append(created_section)
             if already_exists_section:
@@ -1125,7 +1188,9 @@ class SettingsScreen(QWidget):
 
             if not sections:
                 sections.append(
-                    "<div style='font-size:13px; color:#5E7486;'>Операция завершена, но сервер не вернул подробный результат.</div>"
+                    "<div style='font-size:13px; color:#5E7486;'>"
+                    + _("results.no_details")
+                    + "</div>"
                 )
 
             html = (
@@ -1136,15 +1201,15 @@ class SettingsScreen(QWidget):
             )
 
             self._show_registration_results_popup(
-                "Результат регистрации пользователей",
+                _("results.registration_title"),
                 html,
             )
         except Exception as error:
             LOGGER.exception("Failed to register users on server for config: %s", self.config_path)
             QMessageBox.warning(
                 self,
-                "Ошибка регистрации пользователей",
-                f"Не удалось зарегистрировать пользователей на сервере.\n{error}",
+                _("dialogs.register_error"),
+                f"{_('dialogs.register_error_msg', error=error)}",
             )
 
     def _show_registration_results_popup(self, title_text: str, details_html: str):
@@ -1205,7 +1270,7 @@ class SettingsScreen(QWidget):
             + "QScrollBar:vertical { width: 12px; }"
         )
 
-        close_button = QPushButton("Закрыть")
+        close_button = QPushButton(_("buttons.close"))
         close_button.clicked.connect(dialog.accept)
 
         button_row = QHBoxLayout()
@@ -1226,13 +1291,13 @@ class SettingsScreen(QWidget):
             LOGGER.exception("Failed to save config before chat transfer: %s", self.config_path)
             QMessageBox.warning(
                 self,
-                "Ошибка сохранения",
-                f"Не удалось сохранить конфиг перед переносом.\n{error}",
+                _("dialogs.save_error"),
+                f"{_('dialogs.save_error_msg', error=error)}",
             )
             return
 
         dialog = ChatTransferProgressDialog(self)
-        dialog.setWindowTitle("Перенос чата в TrueConf")
+        dialog.setWindowTitle(_("progress.title"))
         dialog.setWindowIcon(QIcon(get_resource_path("assets/icon.png")))
         dialog.setModal(True)
         dialog.resize(820, 560)
@@ -1294,26 +1359,26 @@ class SettingsScreen(QWidget):
         layout.setContentsMargins(20, 18, 20, 18)
         layout.setSpacing(12)
 
-        title = QLabel("Перенос чата в TrueConf")
+        title = QLabel(_("progress.title"))
         title.setStyleSheet("font-size: 16px; font-weight: 800; color: #163047;")
 
-        status_label = QLabel("Подготавливаем перенос...")
+        status_label = QLabel(_("progress.preparing"))
         status_label.setStyleSheet("font-size: 13px; color: #5E7486;")
 
-        counter_label = QLabel("Сообщения: 0 / 0")
+        counter_label = QLabel(_("progress.messages", current=0, total=0))
         counter_label.setStyleSheet("font-size: 13px; color: #163047; font-weight: 600;")
 
         progress_bar = QProgressBar()
         progress_bar.setRange(0, 0)
         progress_bar.setValue(0)
 
-        log_title = QLabel("События и ошибки")
+        log_title = QLabel(_("progress.events"))
         log_title.setStyleSheet("font-size: 13px; font-weight: 700; color: #163047;")
 
         log_browser = QTextBrowser()
         log_browser.setReadOnly(True)
 
-        cancel_button = QPushButton("Отменить перенос")
+        cancel_button = QPushButton(_("buttons.cancel"))
 
         layout.addWidget(title)
         layout.addWidget(status_label)
@@ -1342,11 +1407,11 @@ class SettingsScreen(QWidget):
             if total > 0:
                 progress_bar.setRange(0, total)
                 progress_bar.setValue(current)
-                counter_label.setText(f"Сообщения: {current} / {total}")
-                status_label.setText("Идёт перенос сообщений...")
+                counter_label.setText(_("progress.messages", current=current, total=total))
+                status_label.setText(_("progress.transferring"))
 
         def request_cancel():
-            status_label.setText("Останавливаем перенос...")
+            status_label.setText(_("progress.stopping"))
             cancel_button.setEnabled(False)
             worker.cancel()
 
@@ -1391,8 +1456,8 @@ class SettingsScreen(QWidget):
             LOGGER.info("Chat transfer canceled for config: %s", self.config_path)
             QMessageBox.information(
                 self,
-                "Перенос остановлен",
-                "Перенос чата был остановлен пользователем.",
+                _("dialogs.transfer_stopped"),
+                _("dialogs.transfer_stopped_msg"),
             )
             return
 
@@ -1400,8 +1465,8 @@ class SettingsScreen(QWidget):
             LOGGER.error("Chat transfer failed for config %s: %s", self.config_path, state["error"])
             QMessageBox.warning(
                 self,
-                "Ошибка переноса",
-                f"Не удалось перенести чат в TrueConf.\n\n{state['error']}",
+                _("dialogs.transfer_error"),
+                f"{_('dialogs.transfer_error_msg', error=state['error'])}",
             )
             return
 
@@ -1410,18 +1475,18 @@ class SettingsScreen(QWidget):
         chat_type = result.get("chat_type", "") if isinstance(result, dict) else ""
         chat_id = result.get("chat_id", "") if isinstance(result, dict) else ""
 
-        lines = ["Перенос чата завершён успешно."]
+        lines = [_("results.success")]
         if chat_name:
-            lines.append(f"Чат: {chat_name}")
+            lines.append(_("results.chat_name", name=chat_name))
         if chat_type:
-            lines.append(f"Тип: {chat_type}")
+            lines.append(_("results.chat_type", type=chat_type))
         if chat_id:
-            lines.append(f"ID созданного чата: {chat_id}")
+            lines.append(_("results.chat_id", id=chat_id))
 
         LOGGER.info("Chat transfer completed successfully for config: %s", self.config_path)
         QMessageBox.information(
             self,
-            "Перенос завершён",
+            _("dialogs.transfer_complete"),
             "\n".join(lines),
         )
 
@@ -1464,7 +1529,9 @@ class SettingsScreen(QWidget):
         label.hide()
         return label
 
-    def _create_info_button(self, tooltip_text: str = "Показать подсказку") -> QToolButton:
+    def _create_info_button(self, tooltip_text: str | None = None) -> QToolButton:
+        if tooltip_text is None:
+            tooltip_text = _("tooltips.show_hint")
         button = QToolButton()
         button.setText("i")
         button.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -1492,7 +1559,7 @@ class SettingsScreen(QWidget):
 
     def _show_users_info_popup(self):
         dialog = QDialog(self)
-        dialog.setWindowTitle("Как использовать таблицу")
+        dialog.setWindowTitle(_("table_info.title"))
         dialog.setWindowIcon(QIcon(get_resource_path("assets/icon.png")))
         dialog.setModal(True)
         dialog.setMinimumWidth(640)
@@ -1529,23 +1596,16 @@ class SettingsScreen(QWidget):
         layout.setContentsMargins(20, 18, 20, 18)
         layout.setSpacing(14)
 
-        title = QLabel("Как использовать таблицу пользователей")
+        title = QLabel(_("table_info.title_full"))
         title.setStyleSheet("font-size: 16px; font-weight: 800; color: #163047;")
 
-        text = QLabel(
-            'Таблица используется для сопоставления участников <b>Telegram</b> с пользователями <b>TrueConf</b> при переносе чата. '
-            'Если пользователи уже созданы на сервере, укажите <b>Telegram ID</b> и <b>Токен</b>, '
-            'а если токен недоступен, можно использовать <b>TrueConf ID</b> и <b>Пароль</b>. '
-            'Если пользователей на сервере ещё нет, предварительно зарегистрируйте их с помощью приложения или вручную. '
-            'Для регистрации дополнительно требуется <b>Имя в TrueConf (DN)</b> – отображаемое имя пользователя, при этом email будет создан автоматически по шаблону '
-            '<code>trueconf_id@домен</code>. Информацию о получении <b>access token</b> см. в <a href="https://github.com/TrueConf/telegram-trueconf-migration/blob/main/README-ru.md#%D1%80%D0%B5%D0%B3%D0%B8%D1%81%D1%82%D1%80%D0%B0%D1%86%D0%B8%D1%8F-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D0%B5%D0%B9-%D0%B2-trueconf-server">документации</a>.'
-        )
+        text = QLabel(_("table_info.description"))
         text.setWordWrap(True)
         text.setTextFormat(Qt.TextFormat.RichText)
         text.setOpenExternalLinks(True)
         text.setStyleSheet("font-size: 13px; color: #5E7486; line-height: 1.4;")
 
-        close_button = QPushButton("Понятно")
+        close_button = QPushButton(_("buttons.understand"))
         close_button.clicked.connect(dialog.accept)
 
         button_row = QHBoxLayout()
@@ -1649,9 +1709,9 @@ class SettingsScreen(QWidget):
         return button
 
     def _browse_cover_image(self):
-        file_path, _ = QFileDialog.getOpenFileName(
+        file_path, _filter = QFileDialog.getOpenFileName(
             self,
-            "Выберите изображение-заглушку",
+            _("tooltips.select_cover"),
             self.cover_input.text(),
             "Images (*.png *.jpg *.jpeg *.webp *.bmp);;All Files (*)",
         )
@@ -1686,8 +1746,8 @@ class SettingsScreen(QWidget):
             self._is_loading_toml = False
             QMessageBox.warning(
                 self,
-                "Ошибка сохранения",
-                f"Не удалось сохранить изменения в TOML.\n{error}",
+                _("dialogs.save_error"),
+                f"{_('dialogs.save_error_msg', error=error)}",
             )
 
     def _apply_input_style(self, widget):
@@ -1830,12 +1890,12 @@ class SettingsScreen(QWidget):
         header_layout.setContentsMargins(2, 0, 2, 0)
         header_layout.setSpacing(4)
 
-        title = QLabel("Настройки переноса")
+        title = QLabel(_("settings.title"))
         title.setStyleSheet(
             "font-size: 20px; font-weight: 800; color: #163047; background: transparent;"
         )
 
-        source_badge = QLabel(f"Источник: {self.folder_path}  |  Конфиг: {self.config_path}")
+        source_badge = QLabel(_("settings.source_badge", path=self.folder_path, config=self.config_path))
         source_badge.setWordWrap(False)
         source_badge.setMinimumWidth(520)
         source_badge.setMaximumWidth(1180-100)
@@ -1870,37 +1930,37 @@ class SettingsScreen(QWidget):
         media_layout.setSpacing(8)
         media_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
-        media_title = self._create_section_title("Опции переноса")
+        media_title = self._create_section_title(_("media.title"))
 
-        self.voice_checkbox = QCheckBox("Голосовые → видео")
+        self.voice_checkbox = QCheckBox(_("media.voice_to_video"))
         self._apply_checkbox_style(self.voice_checkbox)
         self.voice_checkbox.setChecked(False)
 
         self.voice_info_label = self._create_inline_warning_label(
-            "Для конвертации голосовых нужен установленный FFmpeg."
+            _("media.ffmpeg_warning")
         )
 
-        cover_label = self._create_hint_label("Обложка для голосовых")
+        cover_label = self._create_hint_label(_("media.cover_label"))
         self.cover_input = QLineEdit("cover/ru.png")
         self._apply_input_style(self.cover_input)
         self.cover_browse_button = self._create_secondary_button("")
-        self.cover_browse_button.setToolTip("Выбрать файл")
+        self.cover_browse_button.setToolTip(_("buttons.select_file"))
         self.cover_browse_button.setFixedSize(42, 42)
         self.cover_browse_button.setIcon(qta.icon("fa5s.folder-open", color="#3097A6"))
         self.cover_browse_button.setIconSize(QSize(16, 16))
         self.cover_browse_button.clicked.connect(self._browse_cover_image)
 
-        self.stickers_checkbox = QCheckBox("Стикеры .tgs → .webp")
+        self.stickers_checkbox = QCheckBox(_("media.stickers"))
         self._apply_checkbox_style(self.stickers_checkbox)
         self.stickers_checkbox.setChecked(False)
 
         self.stickers_info_label = self._create_inline_warning_label(
-            "Для конвертации .tgs в .webp на Windows нужны системные библиотеки Cairo."
+            _("media.cairo_warning")
         )
         self.stickers_info_label.setWordWrap(True)
         self.stickers_info_label.setFixedHeight(28)
 
-        self.datetime_checkbox = QCheckBox("Добавлять дату и время")
+        self.datetime_checkbox = QCheckBox(_("media.datetime"))
         self._apply_checkbox_style(self.datetime_checkbox)
         self.datetime_checkbox.setChecked(False)
         self.datetime_checkbox.toggled.connect(self._update_datetime_controls_state)
@@ -1932,9 +1992,9 @@ class SettingsScreen(QWidget):
             )
         )
 
-        self.caption_input = QLineEdit("Отправлено: ")
+        self.caption_input = QLineEdit(_("media.caption_default"))
         self._apply_input_style(self.caption_input)
-        self.caption_input.setPlaceholderText("Подпись перед датой")
+        self.caption_input.setPlaceholderText(_("media.caption_placeholder"))
         self._update_datetime_controls_state(self.datetime_checkbox.isChecked())
 
         voice_column = QVBoxLayout()
@@ -1971,7 +2031,7 @@ class SettingsScreen(QWidget):
         stickers_header_row.addWidget(self.stickers_checkbox, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         stickers_header_row.addStretch()
 
-        stickers_note = self._create_hint_label("Если выключено, .tgs будут заменены на emoji")
+        stickers_note = self._create_hint_label(_("media.stickers_note"))
 
         stickers_column.addLayout(stickers_header_row)
         stickers_column.addWidget(self.stickers_info_label, 0, Qt.AlignmentFlag.AlignLeft)
@@ -1980,7 +2040,7 @@ class SettingsScreen(QWidget):
 
         datetime_column = QVBoxLayout()
         datetime_column.setSpacing(4)
-        datetime_label = self._create_hint_label("Подпись даты и времени")
+        datetime_label = self._create_hint_label(_("media.datetime_label"))
 
         datetime_column.addWidget(self.datetime_checkbox)
         datetime_column.addWidget(datetime_label)
@@ -2010,27 +2070,27 @@ class SettingsScreen(QWidget):
         chat_layout.setSpacing(8)
         chat_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
-        chat_title = self._create_section_title("Параметры чата")
+        chat_title = self._create_section_title(_("chat.title"))
 
-        name_label = self._create_hint_label("Название чата")
+        name_label = self._create_hint_label(_("chat.name_label"))
         self.chat_name_input = QLineEdit()
         self._apply_input_style(self.chat_name_input)
-        self.chat_name_input.setPlaceholderText("Например: Секретный чат")
+        self.chat_name_input.setPlaceholderText(_("chat.name_placeholder"))
 
-        owner_label = self._create_hint_label("Владелец чата")
+        owner_label = self._create_hint_label(_("chat.owner_label"))
         self.owner_input = QLineEdit()
         self._apply_input_style(self.owner_input)
-        self.owner_input.setPlaceholderText("Например: sherlock")
+        self.owner_input.setPlaceholderText(_("chat.owner_placeholder"))
 
-        type_label = self._create_hint_label("Тип чата")
+        type_label = self._create_hint_label(_("chat.type_label"))
         self.chat_type_combo = QComboBox()
-        self.chat_type_combo.addItem("Личный", "personal")
-        self.chat_type_combo.addItem("Группа", "group")
-        self.chat_type_combo.addItem("Канал", "channel")
-        self.chat_type_combo.addItem("Супергруппа", "supergroup")
+        self.chat_type_combo.addItem(_("chat.type_personal"), "personal")
+        self.chat_type_combo.addItem(_("chat.type_group"), "group")
+        self.chat_type_combo.addItem(_("chat.type_channel"), "channel")
+        self.chat_type_combo.addItem(_("chat.type_supergroup"), "supergroup")
         self._apply_input_style(self.chat_type_combo)
 
-        self.supergroup_template_label = self._create_hint_label("Шаблон темы")
+        self.supergroup_template_label = self._create_hint_label(_("chat.template_label"))
         self.supergroup_template_input = QLineEdit("{topic} | {supergroup}")
         self._apply_input_style(self.supergroup_template_input)
 
@@ -2079,7 +2139,7 @@ class SettingsScreen(QWidget):
         telegram_bot_layout.setContentsMargins(18, 16, 18, 16)
         telegram_bot_layout.setSpacing(8)
 
-        telegram_bot_title = self._create_section_title("Настройки Telegram Bot")
+        telegram_bot_title = self._create_section_title(_("telegram_bot.title"))
 
         telegram_bot_row = QHBoxLayout()
         telegram_bot_row.setSpacing(10)
@@ -2087,30 +2147,30 @@ class SettingsScreen(QWidget):
 
         bot_token_column = QVBoxLayout()
         bot_token_column.setSpacing(4)
-        bot_token_label = self._create_hint_label("Токен из BotFather")
+        bot_token_label = self._create_hint_label(_("telegram_bot.token_label"))
         self.telegram_bot_token_input = QLineEdit()
         self._apply_input_style(self.telegram_bot_token_input)
-        self.telegram_bot_token_input.setPlaceholderText("11223344:dslkfjsdfjksdfwqerpo9lkxcjv")
+        self.telegram_bot_token_input.setPlaceholderText(_("telegram_bot.token_placeholder"))
         bot_token_column.addWidget(bot_token_label)
         bot_token_column.addWidget(self.telegram_bot_token_input)
 
         bot_chat_id_column = QVBoxLayout()
         bot_chat_id_column.setSpacing(4)
-        bot_chat_id_label = self._create_hint_label("ID чата")
+        bot_chat_id_label = self._create_hint_label(_("telegram_bot.chat_id_label"))
         self.telegram_bot_chat_id_input = QLineEdit()
         self._apply_input_style(self.telegram_bot_chat_id_input)
-        self.telegram_bot_chat_id_input.setPlaceholderText("В формате -10011223344")
+        self.telegram_bot_chat_id_input.setPlaceholderText(_("telegram_bot.chat_id_placeholder"))
         bot_chat_id_column.addWidget(bot_chat_id_label)
         bot_chat_id_column.addWidget(self.telegram_bot_chat_id_input)
 
         telegram_bot_row.addLayout(bot_token_column, 3)
         telegram_bot_row.addLayout(bot_chat_id_column, 2)
 
-        self.telegram_bot_enrich_checkbox = QCheckBox("Получить доп. данные с помощью бота")
+        self.telegram_bot_enrich_checkbox = QCheckBox(_("telegram_bot.enrich"))
         self._apply_checkbox_style(self.telegram_bot_enrich_checkbox)
 
         self.telegram_bot_enrich_hint = QLabel(
-            "При обновлении списка участников на вкладке «Пользователи» бот получит @username и реальное отображаемое имя каждого участника. Бот должен быть заранее добавлен в целевой чат с правами администратора."
+            _("telegram_bot.enrich_hint")
         )
         self.telegram_bot_enrich_hint.setWordWrap(True)
         self.telegram_bot_enrich_hint.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -2138,8 +2198,8 @@ class SettingsScreen(QWidget):
         users_layout.setContentsMargins(18, 16, 18, 16)
         users_layout.setSpacing(10)
 
-        users_title = self._create_section_title("Пользователи")
-        self.users_info_button = self._create_info_button("Как использовать таблицу")
+        users_title = self._create_section_title(_("users.title"))
+        self.users_info_button = self._create_info_button(_("table_info.title"))
         self.users_info_button.clicked.connect(self._show_users_info_popup)
 
         users_header_row = QHBoxLayout()
@@ -2174,11 +2234,11 @@ class SettingsScreen(QWidget):
         password_row.setSpacing(8)
         password_row.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
-        password_label = self._create_hint_label("Общий пароль")
+        password_label = self._create_hint_label(_("users.password_label"))
         password_label.setWordWrap(False)
         self.registration_password_input = QLineEdit()
         self._apply_input_style(self.registration_password_input)
-        self.registration_password_input.setPlaceholderText("Например: 12345678")
+        self.registration_password_input.setPlaceholderText(_("users.password_placeholder"))
         self.registration_password_input.setFixedWidth(150)
         self.registration_password_input.setFixedHeight(30)
         self.registration_password_input.setStyleSheet(
@@ -2186,7 +2246,7 @@ class SettingsScreen(QWidget):
             + "QLineEdit { min-height: 30px; font-size: 12px; padding: 0 10px; }"
         )
         self.registration_password_input.textChanged.connect(self._apply_registration_password_to_table)
-        email_domain_label = self._create_hint_label("Email-домен")
+        email_domain_label = self._create_hint_label(_("users.email_domain_label"))
         email_domain_label.setWordWrap(False)
 
         self.registration_email_domain_input = QLineEdit()
@@ -2217,11 +2277,11 @@ class SettingsScreen(QWidget):
         user_actions_layout.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
 
         self.parse_users_button = self._create_icon_button(
-            "Обновить пользователей",
+            _("users.refresh_tooltip"),
             "fa5s.sync-alt",
         )
         self.add_users_button = self._create_icon_button(
-            "Регистрация пользователей на сервере",
+            _("users.register_tooltip"),
             "fa5s.user-plus",
         )
         self.add_users_button.setEnabled(False)
@@ -2241,13 +2301,13 @@ class SettingsScreen(QWidget):
         self.users_table.setHorizontalHeader(MutedHeaderView(Qt.Orientation.Horizontal, self.users_table))
         self.users_table.setHorizontalHeaderLabels(
             [
-                "Telegram ID",
-                "TrueConf ID",
-                "Токен",
-                "Пароль",
-                "Отобр. имя",
-                "Имя в Telegram",
-                "Юзернейм (@)",
+                _("users.headers.telegram_id"),
+                _("users.headers.trueconf_id"),
+                _("users.headers.token"),
+                _("users.headers.password"),
+                _("users.headers.display_name"),
+                _("users.headers.real_name"),
+                _("users.headers.username"),
             ]
         )
         self.users_table.verticalHeader().setVisible(False)
@@ -2329,10 +2389,10 @@ class SettingsScreen(QWidget):
         footer_layout.setContentsMargins(18, 12, 18, 12)
         footer_layout.setSpacing(10)
 
-        self.back_button = self._create_secondary_button("Назад")
-        self.save_button = self._create_secondary_button("Применить")
-        self.save_button.setToolTip("Сохранить изменения в конфиг файл")
-        self.run_button = self._create_primary_button("Начать перенос")
+        self.back_button = self._create_secondary_button(_("buttons.back"))
+        self.save_button = self._create_secondary_button(_("buttons.apply"))
+        self.save_button.setToolTip(_("buttons.apply_tooltip"))
+        self.run_button = self._create_primary_button(_("buttons.run"))
         self.run_button.setEnabled(False)
         self.back_button.clicked.connect(self.on_back)
         self.save_button.clicked.connect(self._apply_settings)
@@ -2399,7 +2459,7 @@ class SettingsScreen(QWidget):
         server_layout.setContentsMargins(18, 16, 18, 16)
         server_layout.setSpacing(8)
 
-        server_title = self._create_section_title("Настройки сервера")
+        server_title = self._create_section_title(_("server.title"))
 
         server_grid = QHBoxLayout()
         server_grid.setSpacing(10)
@@ -2408,10 +2468,10 @@ class SettingsScreen(QWidget):
         address_column = QVBoxLayout()
         address_column.setSpacing(4)
         address_column.setAlignment(Qt.AlignmentFlag.AlignTop)
-        address_label = self._create_hint_label("Адрес")
+        address_label = self._create_hint_label(_("server.address_label"))
         self.server_address_input = QLineEdit()
         self._apply_input_style(self.server_address_input)
-        self.server_address_input.setPlaceholderText("например, server.example.com")
+        self.server_address_input.setPlaceholderText(_("server.address_placeholder"))
         address_column.addWidget(address_label)
         address_column.addWidget(self.server_address_input)
         address_column.addStretch()
@@ -2419,7 +2479,7 @@ class SettingsScreen(QWidget):
         port_column = QVBoxLayout()
         port_column.setSpacing(4)
         port_column.setAlignment(Qt.AlignmentFlag.AlignTop)
-        port_label = self._create_hint_label("Веб-порт")
+        port_label = self._create_hint_label(_("server.port_label"))
         self.server_port_input = QSpinBox()
         self.server_port_input.setRange(1, 65535)
         self.server_port_input.setValue(443)
@@ -2431,9 +2491,9 @@ class SettingsScreen(QWidget):
         ssl_column = QVBoxLayout()
         ssl_column.setSpacing(4)
         ssl_column.setAlignment(Qt.AlignmentFlag.AlignTop)
-        ssl_label = self._create_hint_label("Проверка SSL")
+        ssl_label = self._create_hint_label(_("server.ssl_label"))
         self.server_verify_ssl_combo = QComboBox()
-        self.server_verify_ssl_combo.addItems(["Выключена", "Включена"])
+        self.server_verify_ssl_combo.addItems([_("server.ssl_off"), _("server.ssl_on")])
         self._apply_input_style(self.server_verify_ssl_combo)
         ssl_column.addWidget(ssl_label)
         ssl_column.addWidget(self.server_verify_ssl_combo)
@@ -2442,10 +2502,10 @@ class SettingsScreen(QWidget):
         token_column = QVBoxLayout()
         token_column.setSpacing(4)
         token_column.setAlignment(Qt.AlignmentFlag.AlignTop)
-        token_label = self._create_hint_label("Токен доступа (для регистрации пользователей)")
+        token_label = self._create_hint_label(_("server.token_label"))
         self.server_access_token_input = QLineEdit()
         self._apply_input_style(self.server_access_token_input)
-        self.server_access_token_input.setPlaceholderText("Bearer-токен из Веб → Безопасность")
+        self.server_access_token_input.setPlaceholderText(_("server.token_placeholder"))
         token_column.addWidget(token_label)
         token_column.addWidget(self.server_access_token_input)
         token_column.addStretch()
@@ -2483,9 +2543,9 @@ class SettingsScreen(QWidget):
         users_tab_layout.setSpacing(10)
         users_tab_layout.addWidget(users_card)
 
-        self.tabs.addTab(server_tab, "Подключения")
-        self.tabs.addTab(chat_tab, "Чат")
-        self.tabs.addTab(users_tab, "Пользователи")
+        self.tabs.addTab(server_tab, _("settings.tabs.connections"))
+        self.tabs.addTab(chat_tab, _("settings.tabs.chat"))
+        self.tabs.addTab(users_tab, _("settings.tabs.users"))
 
         for widget in [
             self.telegram_bot_token_input,
@@ -2573,7 +2633,7 @@ class MainWindow(QMainWindow):
 
     def _run_task_with_progress(self, title: str, fn, *args, **kwargs):
         dialog = QProgressDialog(title, None, 0, 0, self)
-        dialog.setWindowTitle("Пожалуйста, подождите")
+        dialog.setWindowTitle(_("dialogs.wait"))
         dialog.setWindowIcon(QIcon(get_resource_path("assets/icon.png")))
         dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
         dialog.setCancelButton(None)
@@ -2644,21 +2704,21 @@ class MainWindow(QMainWindow):
 
     def _run_parse_users_with_progress(self, config_path: str):
         return self._run_task_with_progress(
-            "Обновляем пользователей из экспорта Telegram...",
+            _("dialogs.parse_users"),
             self._run_parse_users,
             config_path,
         )
 
     def _run_add_users_with_progress(self, config_path: str):
         return self._run_task_with_progress(
-            "Регистрируем пользователей на сервере TrueConf...",
+            _("dialogs.register_users"),
             self._run_add_users,
             config_path,
         )
 
     def _run_build_chat_with_progress(self, config_path: str):
         return self._run_task_with_progress(
-            "Переносим чат в TrueConf...",
+            _("dialogs.build_chat"),
             self._run_build_chat,
             config_path,
         )
@@ -2756,7 +2816,7 @@ default_password = ""
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(get_resource_path("assets/icon.png")))
-        self.setWindowTitle("Перенос чатов из Telegram в TrueConf")
+        self.setWindowTitle(_("app.title"))
         self.setMinimumSize(1200, 820)
 
         app_font = QFont("Roboto", 10)
@@ -2781,8 +2841,8 @@ default_password = ""
             LOGGER.warning("Selected folder does not contain result.json: %s", folder_path)
             QMessageBox.warning(
                 self,
-                "Некорректная папка",
-                "В выбранной папке не найден файл result.json.\nВыберите папку экспорта Telegram Desktop.",
+                _("first_screen.invalid_folder"),
+                _("first_screen.invalid_folder_msg"),
             )
             return
 
@@ -2797,8 +2857,8 @@ default_password = ""
             LOGGER.exception("Failed to prepare config for folder: %s", folder_path)
             QMessageBox.warning(
                 self,
-                "Ошибка конфигурации",
-                f"Не удалось подготовить конфиг для выбранного чата.\n{error}",
+                _("dialogs.config_error"),
+                f"{_('dialogs.config_error_msg', error=error)}",
             )
             return
 
@@ -2830,6 +2890,16 @@ default_password = ""
 def main():
     log_path = setup_file_logging()
     app = QApplication(sys.argv)
+
+    settings = QSettings("TrueConf", "tg2tc")
+    settings.sync()
+    lang = settings.value("lang", None)
+    if lang is None:
+        system_locale = QLocale.system().name()
+        lang = "ru" if system_locale.startswith("ru") else "en"
+        settings.setValue("lang", lang)
+    setup_i18n(lang)
+
     app.setWindowIcon(QIcon(get_resource_path("assets/icon.png")))
     app.setStyleSheet("""
         QMenu {
@@ -2867,7 +2937,11 @@ def main():
         except (KeyError, RuntimeError, EnvironmentError, OSError):
             pass
 
-    sys.exit(app.exec())
+    ret = app.exec()
+    if ret == 42:
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+    else:
+        sys.exit(ret)
 
 
 if __name__ == "__main__":

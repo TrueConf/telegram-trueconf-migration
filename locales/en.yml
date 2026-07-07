@@ -1,0 +1,164 @@
+en:
+  app:
+    title: "Transfer Chats from Telegram to TrueConf"
+
+  first_screen:
+    drop_here: "Drop folder here"
+    export_from: "Telegram Desktop export"
+    browse: "Select folder"
+    folder_dialog: "Select Telegram Desktop export folder"
+    invalid_folder: "Invalid folder"
+    invalid_folder_msg: "The selected folder does not contain result.json.\nPlease select a Telegram Desktop export folder."
+
+  settings:
+    title: "Transfer Settings"
+    source_badge: "Source: %{path}  |  Config: %{config}"
+    tabs:
+      connections: "Connections"
+      chat: "Chat"
+      users: "Users"
+
+  media:
+    title: "Transfer Options"
+    voice_to_video: "Voice → video"
+    ffmpeg_warning: "FFmpeg is required for voice message conversion."
+    cover_label: "Voice message cover"
+    stickers: "Stickers .tgs → .webp"
+    cairo_warning: "Cairo system libraries are required for .tgs to .webp conversion on Windows."
+    stickers_note: "If disabled, .tgs will be replaced with emoji"
+    datetime: "Add date and time"
+    datetime_label: "Date and time caption"
+    caption_placeholder: "Caption before date"
+    caption_default: "Sent: "
+
+  chat:
+    title: "Chat Settings"
+    name_label: "Chat name"
+    name_placeholder: "e.g.: Secret Chat"
+    owner_label: "Chat owner"
+    owner_placeholder: "e.g.: sherlock"
+    type_label: "Chat type"
+    type_personal: "Personal"
+    type_group: "Group"
+    type_channel: "Channel"
+    type_supergroup: "Supergroup"
+    template_label: "Topic template"
+
+  telegram_bot:
+    title: "Telegram Bot Settings"
+    token_label: "BotFather token"
+    token_placeholder: "11223344:dslkfjsdfjksdfwqerpo9lkxcjv"
+    chat_id_label: "Chat ID"
+    chat_id_placeholder: "Format: -10011223344"
+    enrich: "Fetch additional data via bot"
+    enrich_hint: "When refreshing the user list on the Users tab, the bot will fetch @username and real display name for each participant. The bot must be added to the target chat with admin rights in advance."
+
+  server:
+    title: "Server Settings"
+    address_label: "Address"
+    address_placeholder: "e.g. server.example.com"
+    port_label: "Web port"
+    ssl_label: "SSL verification"
+    ssl_off: "Disabled"
+    ssl_on: "Enabled"
+    token_label: "Access token (for user registration)"
+    token_placeholder: "Bearer token from Web → Security"
+
+  users:
+    title: "Users"
+    password_label: "Shared password"
+    password_placeholder: "e.g.: 12345678"
+    email_domain_label: "Email domain"
+    email_domain_tooltip: >-
+      Only needed for user registration: new server (Registry mode)
+      or switching from LDAP to Registry.<br><br>
+      Email is automatically generated from TrueConf ID and domain:<br>
+      vasya_ivanov + mail.mycompany.ru → vasya_ivanov@mail.mycompany.ru
+    refresh_tooltip: "Refresh users"
+    register_tooltip: "Register users on server"
+    headers:
+      telegram_id: "Telegram ID"
+      trueconf_id: "TrueConf ID"
+      token: "Token"
+      password: "Password"
+      display_name: "Display name"
+      real_name: "Telegram name"
+      username: "Username (@)"
+
+  table_info:
+    title: "How to use the table"
+    title_full: "How to use the user table"
+    description: >-
+      The table is used to map <b>Telegram</b> participants to <b>TrueConf</b> users during chat transfer.
+      If users are already created on the server, specify <b>Telegram ID</b> and <b>Token</b>,
+      or if the token is unavailable, you can use <b>TrueConf ID</b> and <b>Password</b>.
+      If users don't exist on the server yet, register them first using the application or manually.
+      Registration additionally requires <b>Display name in TrueConf (DN)</b> – the user's display name, while email will be created automatically using the pattern
+      <code>trueconf_id@domain</code>. For information on obtaining an <b>access token</b>, see the <a href="https://github.com/TrueConf/telegram-trueconf-migration/blob/main/README-ru.md#%D1%80%D0%B5%D0%B3%D0%B8%D1%81%D1%82%D1%80%D0%B0%D1%86%D0%B8%D1%8F-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D0%B5%D0%B9-%D0%B2-trueconf-server">documentation</a>.
+
+  buttons:
+    back: "Back"
+    apply: "Apply"
+    apply_tooltip: "Save changes to config file"
+    run: "Start transfer"
+    close: "Close"
+    cancel: "Cancel transfer"
+    understand: "Got it"
+    select_file: "Select file"
+
+  progress:
+    title: "Transfer Chat to TrueConf"
+    preparing: "Preparing transfer..."
+    messages: "Messages: %{current} / %{total}"
+    transferring: "Transferring messages..."
+    stopping: "Stopping transfer..."
+    events: "Events and Errors"
+
+  results:
+    success: "Chat transfer completed successfully."
+    chat_name: "Chat: %{name}"
+    chat_type: "Type: %{type}"
+    chat_id: "Created chat ID: %{id}"
+    registration_title: "User Registration Results"
+    registered: "Registered"
+    already_exist: "Already exist on server"
+    errors: "Errors"
+    no_details: "Operation completed, but the server did not return detailed results."
+
+  dialogs:
+    wait: "Please wait"
+    parse_users: "Updating users from Telegram export..."
+    register_users: "Registering users on TrueConf server..."
+    build_chat: "Transferring chat to TrueConf..."
+    config_error: "Configuration Error"
+    config_error_msg: "Failed to prepare config for the selected chat.\n%{error}"
+    save_error: "Save Error"
+    save_error_msg: "Failed to save changes to TOML.\n%{error}"
+    refresh_error: "User Update Error"
+    refresh_error_msg: "Failed to update users.\n%{error}"
+    register_error: "User Registration Error"
+    register_error_msg: "Failed to register users on the server.\n%{error}"
+    transfer_error: "Transfer Error"
+    transfer_error_msg: "Failed to transfer chat to TrueConf.\n\n%{error}"
+    transfer_stopped: "Transfer Stopped"
+    transfer_stopped_msg: "Chat transfer was stopped by the user."
+    transfer_complete: "Transfer Complete"
+    unknown_error: "Unknown error"
+    bot_data_needed: "Telegram Bot Data Required"
+    bot_data_needed_msg: >-
+      Additional data retrieval via Telegram Bot is enabled.
+
+      Fill in the "BotFather Token" and "Chat ID" fields on the "Connections" tab.
+      You don't need to click "Apply" before refreshing — current values will be saved automatically.
+
+  tooltips:
+    show_hint: "Show hint"
+    select_cover: "Select cover image"
+    no_telegram_id: "Specify Telegram ID to map the participant."
+    need_token_or_creds: "Access token or TrueConf ID + Password required."
+    need_display_name: "Display name is required for server registration."
+    duplicate_trueconf_id: "Duplicate TrueConf ID: value must be unique."
+
+  lang:
+    ru: "Русский"
+    en: "English"
