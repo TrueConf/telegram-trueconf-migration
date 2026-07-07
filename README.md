@@ -69,10 +69,9 @@ Migration consists of six steps. The full flow is shown below without extra deta
 To migrate chats successfully, first:
 
 1. Install [Telegram Desktop](https://desktop.telegram.org/).
-2. Deploy [TrueConf Server](https://trueconf.com/products/tcsf/free-video-conferencing-server.html) version 5.5.3 or later:
-   - [for Windows](https://trueconf.com/blog/knowledge-base/how-to-deploy-video-conferencing-server) ([video guide](https://www.youtube.com/watch?v=Tb3UTk1JSgg));
-   - for Linux: [Debian](https://trueconf.com/blog/knowledge-base/how-to-install-video-conferencing-server-on-linux), [CentOS](https://trueconf.com/blog/knowledge-base/how-to-install-trueconf-server-on-centos-stream-9-linux-in-15-minutes), [Astra Linux](https://trueconf.com/blog/knowledge-base/how-to-install-trueconf-server-on-astra-linux-se-in-15-minutes), [ALT Server](https://trueconf.com/blog/knowledge-base/how-to-install-trueconf-server-on-alt-server-linux-in-15-minutes), [RED OS](https://trueconf.com/blog/knowledge-base/how-to-install-trueconf-server-on-red-os-linux-in-15-minutes).
-3. Install [Python 3.11](https://docs.python.org/3/using/index.html) or later on any PC that is **not** the TrueConf Server machine.
+2. Deploy [TrueConf Server](https://trueconf.com/products/tcsf/trueconf-server-free.html) version 5.5.3 or later:
+   - [for Windows](https://trueconf.com/blog/knowledge-base/get-video-conferencing-system-15-minutes) ([video guide](https://www.youtube.com/watch?v=Tb3UTk1JSgg));
+   - for Linux: [Debian](https://trueconf.com/blog/knowledge-base/install-and-set-up-your-video-conferencing-server-for-linux-in-15-minutes), [CentOS](https://trueconf.com/blog/knowledge-base/how-to-install-trueconf-server-on-centos-stream-linux).
 
 > [!TIP]
 > This open-source solution migrates chats without preserving the original message date and time as the actual send time. If this is critical for you, contact [technical support](https://trueconf.com/support.html) for assistance.
@@ -262,7 +261,7 @@ This version of the program does not send messages with their original Telegram 
    <img src="docs/tab_users_en.png" alt="Users Tab" width="800" height="auto">
 </p>
 
-For each Telegram ID, specify the correct TrueConf ID, or login. The **Password** and **Display name** columns are needed only when registering new users on the server. The **@username** and **Real name** columns are filled in automatically when using [Telegram bot integration](#connections-tab) by clicking <img src="docs/update_users_button.png" alt="Update Users Button" width="30" height="auto">.
+For each Telegram ID, specify the correct TrueConf ID, or login. The **Password** and **Display name** columns are needed only when registering new users on the server. The **@username** and **Telegram name** columns are filled in automatically when using [Telegram bot integration](#connections-tab) by clicking <img src="docs/update_users_button.png" alt="Update Users Button" width="30" height="auto">.
 
 > [!WARNING]
 > Automatic completion requires access to Telegram servers. If you see an error, check whether your network access tools are enabled.
