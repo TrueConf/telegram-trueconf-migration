@@ -2245,7 +2245,7 @@ class SettingsScreen(QWidget):
                 "TrueConf ID",
                 "Токен",
                 "Пароль",
-                "Имя в TrueConf (DN)",
+                "Отобр. имя",
                 "Имя в Telegram",
                 "Юзернейм (@)",
             ]
