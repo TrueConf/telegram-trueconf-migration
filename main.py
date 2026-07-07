@@ -604,8 +604,6 @@ class FirstScreen(QWidget):
 class SettingsScreen(QWidget):
     """Экран настроек переноса"""
 
-    EMAIL_DOMAIN_TOOLTIP = _("users.email_domain_tooltip")
-
     def __init__(
         self,
         folder_path,
@@ -2252,7 +2250,7 @@ class SettingsScreen(QWidget):
         self.registration_email_domain_input = QLineEdit()
         self._apply_input_style(self.registration_email_domain_input)
         self.registration_email_domain_input.setPlaceholderText("example.com")
-        self.registration_email_domain_input.setToolTip(self.EMAIL_DOMAIN_TOOLTIP)
+        self.registration_email_domain_input.setToolTip(_("users.email_domain_tooltip"))
         self.registration_email_domain_input.setFixedWidth(112)
         self.registration_email_domain_input.setFixedHeight(30)
         self.registration_email_domain_input.setStyleSheet(
