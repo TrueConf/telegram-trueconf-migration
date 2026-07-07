@@ -295,12 +295,12 @@ To migrate chats from Telegram to TrueConf, every chat participant must be regis
 2. To speed up the process, set a common password for all users in the **Registration password** field.
 3. Obtain an API `access_token` for TrueConf Server in one of two ways:
 
-   **Method A. From the control panel.** Go to **Web → Security** and copy the API token.
+**Method A. From the control panel.** Go to **Web → Security** and copy the API token.
 
 > [!CAUTION]
 > This token does not expire, grants access to the entire server API, and must be stored as an administrator secret.
 
-   **Method B. Via an OAuth application (recommended).** Create an [OAuth application](https://trueconf.com/docs/server/en/admin/api/), grant only the required permissions, and send a request to `https://domain.name/api/v4/token` to exchange the `client_id` and `client_secret` for an `access_token`.
+**Method B. Via an OAuth application (recommended).** Create an [OAuth application](https://trueconf.com/docs/server/en/admin/api/), grant only the required permissions, and send a request to `https://domain.name/api/v4/token` to exchange the `client_id` and `client_secret` for an `access_token`.
 
 > [!NOTE]
 > An OAuth token is valid for 1 hour by default, which is safer for migration scenarios.

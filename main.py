@@ -50,6 +50,7 @@ LOGGER.info("add_users_to_server imported successfully")
 import build_chat
 LOGGER.info("build_chat imported successfully")
 from localization import _, setup_i18n
+import i18n
 
 try:
     import pyi_splash
@@ -445,7 +446,8 @@ class FirstScreen(QWidget):
         card_layout.setContentsMargins(34, 28, 34, 28)
         card_layout.setSpacing(14)
 
-        brand_label = QSvgWidget(get_resource_path("assets/trueconf-logo.svg"))
+        logo_lang = i18n.get("locale")
+        brand_label = QSvgWidget(get_resource_path(f"assets/trueconf-logo-{logo_lang}.svg"))
         logo_size = brand_label.renderer().defaultSize()
         scaled_logo_size = logo_size.scaled(
             QSize(225, 45),
