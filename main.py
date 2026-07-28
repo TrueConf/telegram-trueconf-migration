@@ -36,7 +36,18 @@ from PyQt6.QtWidgets import (
     QProgressBar,
 )
 from PyQt6.QtWidgets import QAbstractScrollArea
-from PyQt6.QtCore import Qt, QSize, QTimeZone, QSettings, QLocale, QObject, QThread, pyqtSignal, QEventLoop, QTimer
+from PyQt6.QtCore import (
+    Qt,
+    QSize,
+    QTimeZone,
+    QSettings,
+    QLocale,
+    QObject,
+    QThread,
+    pyqtSignal,
+    QEventLoop,
+    QTimer,
+)
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QFont, QColor, QPixmap, QIcon
 import qtawesome as qta
 from PyQt6.QtSvgWidgets import QSvgWidget
@@ -44,10 +55,13 @@ from PyQt6.QtSvgWidgets import QSvgWidget
 LOGGER = logging.getLogger("tg2tc")
 
 import parse_users
+
 LOGGER.info("parse_users imported successfully")
 import add_users_to_server
+
 LOGGER.info("add_users_to_server imported successfully")
 import build_chat
+
 LOGGER.info("build_chat imported successfully")
 from localization import _, setup_i18n
 import i18n
@@ -106,6 +120,7 @@ def setup_file_logging() -> Path:
     LOGGER.info("=== Application started ===")
     return log_path
 
+
 class ChatTransferProgressDialog(QDialog):
     cancel_requested = pyqtSignal()
 
@@ -122,6 +137,7 @@ class ChatTransferProgressDialog(QDialog):
             event.ignore()
             return
         super().closeEvent(event)
+
 
 class ChatTransferWorker(QObject):
     progress_changed = pyqtSignal(int, int)
@@ -186,7 +202,9 @@ class ChatTransferWorker(QObject):
                     should_cancel=lambda: self._cancel_requested,
                 )
             else:
-                raise RuntimeError("В build_chat.py не найдена функция run_chat_transfer")
+                raise RuntimeError(
+                    "В build_chat.py не найдена функция run_chat_transfer"
+                )
 
             if self._cancel_requested:
                 self.canceled.emit()
@@ -203,6 +221,7 @@ class ChatTransferWorker(QObject):
         except Exception as error:
             LOGGER.exception("Chat transfer failed")
             self.failed.emit(str(error))
+
 
 class BackgroundTaskWorker(QObject):
     finished = pyqtSignal(object)
@@ -221,6 +240,7 @@ class BackgroundTaskWorker(QObject):
         except Exception as error:
             LOGGER.exception("Background task failed")
             self.failed.emit(str(error))
+
 
 class ElidedComboBox(QComboBox):
     """QComboBox with elided current text."""
@@ -287,9 +307,13 @@ class MutedHeaderView(QHeaderView):
             font.setPixelSize(12)
             font.setBold(True)
             painter.setFont(font)
-            text = self.model().headerData(logicalIndex, self.orientation(), Qt.ItemDataRole.DisplayRole)
+            text = self.model().headerData(
+                logicalIndex, self.orientation(), Qt.ItemDataRole.DisplayRole
+            )
             text_rect = rect.adjusted(0, 0, 0, 0)
-            painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, str(text) if text else "")
+            painter.drawText(
+                text_rect, Qt.AlignmentFlag.AlignCenter, str(text) if text else ""
+            )
             painter.restore()
         else:
             super().paintSection(painter, rect, logicalIndex)
@@ -308,20 +332,20 @@ class DragDropArea(QFrame):
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(36, 36, 36, 36)
-        layout.setSpacing(10)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(6)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.icon_label = QLabel()
         self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.icon_label.setFixedSize(64, 64)
+        self.icon_label.setMinimumSize(48, 48)
         self.icon_label.setStyleSheet("background: transparent; border: none;")
 
         folder_pixmap = QPixmap(get_resource_path("assets/folder.png"))
         self.icon_label.setPixmap(
             folder_pixmap.scaled(
-                64,
-                64,
+                48,
+                48,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
             )
@@ -331,20 +355,20 @@ class DragDropArea(QFrame):
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.title_label.setWordWrap(False)
         self.title_label.setStyleSheet(
-            "font-size: 18px; font-weight: 700; color: #163047; background: transparent; border: none;"
+            "font-size: 16px; font-weight: 700; color: #163047; background: transparent; border: none;"
         )
 
         self.subtitle_label = QLabel(_("first_screen.export_from"))
         self.subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.subtitle_label.setStyleSheet(
-            "font-size: 14px; color: #5E7486; background: transparent; border: none;"
+            "font-size: 13px; color: #5E7486; background: transparent; border: none;"
         )
 
-        layout.addSpacing(18)
+        layout.addSpacing(10)
         layout.addWidget(self.icon_label, 0, Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.title_label)
         layout.addWidget(self.subtitle_label)
-        layout.addSpacing(18)
+        layout.addSpacing(10)
 
     def _apply_style(self):
         if self._is_drag_active:
@@ -426,7 +450,7 @@ class FirstScreen(QWidget):
         self.setStyleSheet("background-color: #F6FAFC;")
 
         root_layout = QVBoxLayout(self)
-        root_layout.setContentsMargins(32, 24, 32, 24)
+        root_layout.setContentsMargins(20, 16, 20, 16)
         root_layout.setSpacing(0)
 
         card = QFrame()
@@ -443,14 +467,16 @@ class FirstScreen(QWidget):
         card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         card_layout = QVBoxLayout(card)
-        card_layout.setContentsMargins(34, 28, 34, 28)
+        card_layout.setContentsMargins(24, 20, 24, 20)
         card_layout.setSpacing(14)
 
         logo_lang = i18n.get("locale")
-        brand_label = QSvgWidget(get_resource_path(f"assets/trueconf-logo-{logo_lang}.svg"))
+        brand_label = QSvgWidget(
+            get_resource_path(f"assets/trueconf-logo-{logo_lang}.svg")
+        )
         logo_size = brand_label.renderer().defaultSize()
         scaled_logo_size = logo_size.scaled(
-            QSize(225, 45),
+            QSize(180, 36),
             Qt.AspectRatioMode.KeepAspectRatio,
         )
         brand_label.setFixedSize(scaled_logo_size)
@@ -510,7 +536,9 @@ class FirstScreen(QWidget):
             action = lang_menu.addAction(lang_label)
             action.setCheckable(True)
             action.setChecked(lang_code == current_lang)
-            action.triggered.connect(lambda checked, code=lang_code: self._on_lang_selected(code))
+            action.triggered.connect(
+                lambda checked, code=lang_code: self._on_lang_selected(code)
+            )
 
         self.lang_button.setMenu(lang_menu)
 
@@ -524,15 +552,14 @@ class FirstScreen(QWidget):
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setWordWrap(True)
         title.setStyleSheet(
-            "font-size: 24px; font-weight: 800; color: #163047; background: transparent;"
+            "font-size: 20px; font-weight: 800; color: #163047; background: transparent;"
         )
 
         self.drop_area = DragDropArea(on_folder_dropped=self.on_folder_selected)
-        self.drop_area.setMinimumHeight(250)
-        self.drop_area.setMaximumHeight(280)
+        self.drop_area.setMinimumHeight(150)
         self.drop_area.setSizePolicy(
             QSizePolicy.Policy.Expanding,
-            QSizePolicy.Policy.Fixed,
+            QSizePolicy.Policy.Expanding,
         )
 
         buttons_layout = QHBoxLayout()
@@ -541,8 +568,8 @@ class FirstScreen(QWidget):
 
         self.browse_button = QPushButton(_("first_screen.browse"))
         self.browse_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.browse_button.setFixedHeight(52)
-        self.browse_button.setMinimumWidth(220)
+        self.browse_button.setMinimumHeight(42)
+        self.browse_button.setMinimumWidth(140)
         self.browse_button.setStyleSheet(
             """
             QPushButton {
@@ -563,7 +590,6 @@ class FirstScreen(QWidget):
             """
         )
         self.browse_button.clicked.connect(self.browse_folder)
-
 
         buttons_layout.addWidget(self.browse_button)
 
@@ -635,7 +661,9 @@ class SettingsScreen(QWidget):
         if hasattr(self, "run_button"):
             self.run_button.setEnabled(False)
 
-    def _create_user_table_item(self, value: str, user_key: str = "", editable: bool = True) -> QTableWidgetItem:
+    def _create_user_table_item(
+        self, value: str, user_key: str = "", editable: bool = True
+    ) -> QTableWidgetItem:
         item = QTableWidgetItem(value)
         if user_key:
             item.setData(Qt.ItemDataRole.UserRole, user_key)
@@ -705,9 +733,13 @@ class SettingsScreen(QWidget):
         self.telegram_bot_chat_id_input.setText(str(telegram_bot.get("chat_id", "")))
         telegram_bot_enabled = telegram_bot.get("enabled", None)
         if telegram_bot_enabled is None:
-            telegram_bot_enabled = bool(telegram_bot.get("token", "") or telegram_bot.get("chat_id", ""))
+            telegram_bot_enabled = bool(
+                telegram_bot.get("token", "") or telegram_bot.get("chat_id", "")
+            )
         self.telegram_bot_enrich_checkbox.setChecked(bool(telegram_bot_enabled))
-        self._update_telegram_bot_controls_state(self.telegram_bot_enrich_checkbox.isChecked())
+        self._update_telegram_bot_controls_state(
+            self.telegram_bot_enrich_checkbox.isChecked()
+        )
 
         self.server_address_input.setText(str(server.get("address", "")))
         web_port = server.get("web_port", 443)
@@ -717,7 +749,9 @@ class SettingsScreen(QWidget):
             self.server_port_input.setValue(443)
 
         verify_ssl = bool(server.get("verify_ssl", False))
-        self.server_verify_ssl_combo.setCurrentText(_("server.ssl_on") if verify_ssl else _("server.ssl_off"))
+        self.server_verify_ssl_combo.setCurrentText(
+            _("server.ssl_on") if verify_ssl else _("server.ssl_off")
+        )
         self.server_access_token_input.setText(str(server.get("access_token", "")))
 
         self.chat_name_input.setText(str(chat.get("name", "")))
@@ -739,10 +773,14 @@ class SettingsScreen(QWidget):
         self.voice_checkbox.setChecked(voice_enabled)
         self.cover_input.setText(str(chat_voice.get("cover_image", "cover/ru.png")))
 
-        stickers_enabled = bool(chat_stickers.get("convert_telegram_stickers_to_webp", False))
+        stickers_enabled = bool(
+            chat_stickers.get("convert_telegram_stickers_to_webp", False)
+        )
         self.stickers_checkbox.setChecked(stickers_enabled)
 
-        datetime_enabled = bool(chat_datetime.get("view_original_time_in_message", False))
+        datetime_enabled = bool(
+            chat_datetime.get("view_original_time_in_message", False)
+        )
         self.datetime_checkbox.setChecked(datetime_enabled)
 
         timezone_value = str(chat_datetime.get("timezone", "GMT"))
@@ -750,15 +788,24 @@ class SettingsScreen(QWidget):
         if timezone_index >= 0:
             self.timezone_combo.setCurrentIndex(timezone_index)
 
-        self.caption_input.setText(str(chat_datetime.get("caption", _("media.caption_default"))))
-        self.registration_password_input.setText(str(registration.get("default_password", "")))
-        self.registration_email_domain_input.setText(str(registration.get("email_domain", "")))
+        self.caption_input.setText(
+            str(chat_datetime.get("caption", _("media.caption_default")))
+        )
+        self.registration_password_input.setText(
+            str(registration.get("default_password", ""))
+        )
+        self.registration_email_domain_input.setText(
+            str(registration.get("email_domain", ""))
+        )
 
         self._update_voice_controls_state(self.voice_checkbox.isChecked())
         self._update_datetime_controls_state(self.datetime_checkbox.isChecked())
-        self._update_supergroup_template_state(str(self.chat_type_combo.currentData() or ""))
+        self._update_supergroup_template_state(
+            str(self.chat_type_combo.currentData() or "")
+        )
         if hasattr(self, "run_button"):
             self.run_button.setEnabled(False)
+
     def load_users_from_toml(self):
         table = getattr(self, "users_table", None)
         if table is None:
@@ -773,7 +820,7 @@ class SettingsScreen(QWidget):
 
         table.blockSignals(True)
         table.setRowCount(0)
-        editable_columns = {1, 2, 3, 4}   # display_name, trueconf_id, token, password
+        editable_columns = {1, 2, 3, 4}  # display_name, trueconf_id, token, password
 
         for row_index, (user_key, user_data) in enumerate(users.items()):
             table.insertRow(row_index)
@@ -834,30 +881,51 @@ class SettingsScreen(QWidget):
 
         config["telegram_export_dir"] = str(self.folder_path)
 
-        config["telegram_bot"]["enabled"] = self.telegram_bot_enrich_checkbox.isChecked()
+        config["telegram_bot"]["enabled"] = (
+            self.telegram_bot_enrich_checkbox.isChecked()
+        )
         config["telegram_bot"]["token"] = self.telegram_bot_token_input.text().strip()
-        config["telegram_bot"]["chat_id"] = self.telegram_bot_chat_id_input.text().strip()
+        config["telegram_bot"]["chat_id"] = (
+            self.telegram_bot_chat_id_input.text().strip()
+        )
 
         config["server"]["address"] = self.server_address_input.text().strip()
         config["server"]["web_port"] = int(self.server_port_input.value())
-        config["server"]["verify_ssl"] = self.server_verify_ssl_combo.currentText() == _("server.ssl_on")
+        config["server"]["verify_ssl"] = (
+            self.server_verify_ssl_combo.currentText() == _("server.ssl_on")
+        )
         config["server"]["access_token"] = self.server_access_token_input.text().strip()
-        config["registration"]["default_password"] = self.registration_password_input.text().strip()
-        config["registration"]["email_domain"] = self.registration_email_domain_input.text().strip()
+        config["registration"]["default_password"] = (
+            self.registration_password_input.text().strip()
+        )
+        config["registration"]["email_domain"] = (
+            self.registration_email_domain_input.text().strip()
+        )
 
         chat["name"] = self.chat_name_input.text().strip()
         chat["owner"] = self.owner_input.text().strip()
         chat["type"] = str(self.chat_type_combo.currentData() or "")
-        chat["supergroup_topic_name_template"] = self.supergroup_template_input.text().strip()
+        chat["supergroup_topic_name_template"] = (
+            self.supergroup_template_input.text().strip()
+        )
 
-        chat["datetime"]["view_original_time_in_message"] = self.datetime_checkbox.isChecked()
-        chat["datetime"]["timezone"] = self.timezone_combo.currentData(Qt.ItemDataRole.UserRole) or self.timezone_combo.currentText()
+        chat["datetime"]["view_original_time_in_message"] = (
+            self.datetime_checkbox.isChecked()
+        )
+        chat["datetime"]["timezone"] = (
+            self.timezone_combo.currentData(Qt.ItemDataRole.UserRole)
+            or self.timezone_combo.currentText()
+        )
         chat["datetime"]["caption"] = self.caption_input.text()
 
-        chat["voice_message"]["convert_voice_message_to_video"] = self.voice_checkbox.isChecked()
+        chat["voice_message"]["convert_voice_message_to_video"] = (
+            self.voice_checkbox.isChecked()
+        )
         chat["voice_message"]["cover_image"] = self.cover_input.text().strip()
 
-        chat["stickers"]["convert_telegram_stickers_to_webp"] = self.stickers_checkbox.isChecked()
+        chat["stickers"]["convert_telegram_stickers_to_webp"] = (
+            self.stickers_checkbox.isChecked()
+        )
 
         users_table = tomlkit.table()
         for row in range(self.users_table.rowCount()):
@@ -866,11 +934,27 @@ class SettingsScreen(QWidget):
                 item = self.users_table.item(row, col)
                 values.append(item.text().strip() if item is not None else "")
 
-            telegram_id, trueconf_id, access_token, password, display_name, real_display_name, username = values
+            (
+                telegram_id,
+                trueconf_id,
+                access_token,
+                password,
+                display_name,
+                real_display_name,
+                username,
+            ) = values
 
             key_item = self.users_table.item(row, 0)
-            stored_key = key_item.data(Qt.ItemDataRole.UserRole) if key_item is not None else None
-            stored_type = key_item.data(Qt.ItemDataRole.UserRole + 1) if key_item is not None else None
+            stored_key = (
+                key_item.data(Qt.ItemDataRole.UserRole)
+                if key_item is not None
+                else None
+            )
+            stored_type = (
+                key_item.data(Qt.ItemDataRole.UserRole + 1)
+                if key_item is not None
+                else None
+            )
             user_key = str(stored_key).strip() if stored_key else ""
             user_type = str(stored_type).strip() if stored_type else "user"
             if not user_key:
@@ -911,12 +995,26 @@ class SettingsScreen(QWidget):
             real_name_item = self.users_table.item(row, 5)
             username_item = self.users_table.item(row, 6)
 
-            telegram_id = telegram_item.text().strip() if telegram_item is not None else ""
-            access_token = access_token_item.text().strip() if access_token_item is not None else ""
-            trueconf_id = trueconf_item.text().strip() if trueconf_item is not None else ""
+            telegram_id = (
+                telegram_item.text().strip() if telegram_item is not None else ""
+            )
+            access_token = (
+                access_token_item.text().strip()
+                if access_token_item is not None
+                else ""
+            )
+            trueconf_id = (
+                trueconf_item.text().strip() if trueconf_item is not None else ""
+            )
             password = password_item.text().strip() if password_item is not None else ""
-            display_name = display_name_item.text().strip() if display_name_item is not None else ""
-            real_name = real_name_item.text().strip() if real_name_item is not None else ""
+            display_name = (
+                display_name_item.text().strip()
+                if display_name_item is not None
+                else ""
+            )
+            real_name = (
+                real_name_item.text().strip() if real_name_item is not None else ""
+            )
             username = username_item.text().strip() if username_item is not None else ""
 
             user_key = ""
@@ -980,11 +1078,19 @@ class SettingsScreen(QWidget):
                 real_name_item = table.item(row, 5)
                 username_item = table.item(row, 6)
 
-                telegram_id = telegram_id_item.text().strip() if telegram_id_item else ""
-                access_token = access_token_item.text().strip() if access_token_item else ""
-                trueconf_id = trueconf_id_item.text().strip() if trueconf_id_item else ""
+                telegram_id = (
+                    telegram_id_item.text().strip() if telegram_id_item else ""
+                )
+                access_token = (
+                    access_token_item.text().strip() if access_token_item else ""
+                )
+                trueconf_id = (
+                    trueconf_id_item.text().strip() if trueconf_id_item else ""
+                )
                 password = password_item.text().strip() if password_item else ""
-                display_name = display_name_item.text().strip() if display_name_item else ""
+                display_name = (
+                    display_name_item.text().strip() if display_name_item else ""
+                )
                 normalized_trueconf_id = trueconf_id.lower() if trueconf_id else ""
 
                 for col in range(table.columnCount()):
@@ -1010,18 +1116,28 @@ class SettingsScreen(QWidget):
                             item.setBackground(QColor("#FFF4BF"))
                             item.setToolTip(_("tooltips.need_token_or_creds"))
 
-                if registration_active and not display_name and display_name_item is not None:
+                if (
+                    registration_active
+                    and not display_name
+                    and display_name_item is not None
+                ):
                     display_name_item.setBackground(QColor("#FFF4BF"))
                     display_name_item.setToolTip(_("tooltips.need_display_name"))
 
-                if normalized_trueconf_id and normalized_trueconf_id in duplicate_trueconf_ids and trueconf_id_item is not None:
+                if (
+                    normalized_trueconf_id
+                    and normalized_trueconf_id in duplicate_trueconf_ids
+                    and trueconf_id_item is not None
+                ):
                     trueconf_id_item.setBackground(QColor("#FFD9D9"))
                     trueconf_id_item.setForeground(QColor("#A63B3B"))
                     trueconf_id_item.setToolTip(_("tooltips.duplicate_trueconf_id"))
         finally:
             table.blockSignals(False)
 
-    def _restore_manual_user_overrides_to_toml(self, override_map: dict[str, dict[str, str]]):
+    def _restore_manual_user_overrides_to_toml(
+        self, override_map: dict[str, dict[str, str]]
+    ):
         if not override_map:
             return
 
@@ -1037,9 +1153,15 @@ class SettingsScreen(QWidget):
         for user_key, user_data in users.items():
             identifiers = [
                 f"key:{user_key}",
-                f"trueconf:{str(user_data.get('trueconf_id', '')).strip()}" if str(user_data.get('trueconf_id', '')).strip() else "",
-                f"telegram:{str(user_data.get('telegram_id', '')).strip()}" if str(user_data.get('telegram_id', '')).strip() else "",
-                f"username:{str(user_data.get('username', '')).strip().lstrip('@')}" if str(user_data.get('username', '')).strip() else "",
+                f"trueconf:{str(user_data.get('trueconf_id', '')).strip()}"
+                if str(user_data.get("trueconf_id", "")).strip()
+                else "",
+                f"telegram:{str(user_data.get('telegram_id', '')).strip()}"
+                if str(user_data.get("telegram_id", "")).strip()
+                else "",
+                f"username:{str(user_data.get('username', '')).strip().lstrip('@')}"
+                if str(user_data.get("username", "")).strip()
+                else "",
             ]
 
             matched_override = None
@@ -1051,7 +1173,12 @@ class SettingsScreen(QWidget):
             if matched_override is None:
                 continue
 
-            for field_name in ("display_name", "trueconf_id", "access_token", "password"):
+            for field_name in (
+                "display_name",
+                "trueconf_id",
+                "access_token",
+                "password",
+            ):
                 new_value = matched_override.get(field_name, "")
                 if str(user_data.get(field_name, "")) != new_value:
                     user_data[field_name] = new_value
@@ -1098,12 +1225,16 @@ class SettingsScreen(QWidget):
             return
 
         try:
-            LOGGER.info("Starting server user registration for config: %s", self.config_path)
+            LOGGER.info(
+                "Starting server user registration for config: %s", self.config_path
+            )
             self.save_form_to_toml()
             result = self.on_add_users(self.config_path)
 
             created = result.get("created", []) if isinstance(result, dict) else []
-            already_exists = result.get("already_exists", []) if isinstance(result, dict) else []
+            already_exists = (
+                result.get("already_exists", []) if isinstance(result, dict) else []
+            )
             errors = result.get("errors", []) if isinstance(result, dict) else []
 
             def escape_html(value: str) -> str:
@@ -1142,7 +1273,9 @@ class SettingsScreen(QWidget):
                         + format_user_line(entry)
                         + "</div>"
                     )
-                body = "<hr style='border:none; border-top:1px solid #E2EEF2; margin:0;'>".join(rows)
+                body = "<hr style='border:none; border-top:1px solid #E2EEF2; margin:0;'>".join(
+                    rows
+                )
                 return (
                     f"<div style='margin-bottom:18px;'>"
                     f"<div style='font-size:14px; font-weight:700; color:#163047; margin-bottom:8px;'>{icon} {escape_html(title)} ({len(items)})</div>"
@@ -1158,7 +1291,9 @@ class SettingsScreen(QWidget):
                 for error in errors:
                     user = escape_html(error.get("user", "—"))
                     status_code = escape_html(error.get("status_code", "—"))
-                    message = escape_html(error.get("message", _("dialogs.unknown_error")))
+                    message = escape_html(
+                        error.get("message", _("dialogs.unknown_error"))
+                    )
                     details = escape_html(error.get("details", ""))
                     line = f"{user} — {status_code} — {message}"
                     if details and details != "—":
@@ -1166,7 +1301,9 @@ class SettingsScreen(QWidget):
                     error_rows.append(
                         "<div style='padding:10px 12px;'>" + line + "</div>"
                     )
-                error_body = "<hr style='border:none; border-top:1px solid #E2EEF2; margin:0;'>".join(error_rows)
+                error_body = "<hr style='border:none; border-top:1px solid #E2EEF2; margin:0;'>".join(
+                    error_rows
+                )
                 error_section = (
                     f"<div style='margin-bottom:18px;'>"
                     f"<div style='font-size:14px; font-weight:700; color:#163047; margin-bottom:8px;'>🔴 {_('results.errors')} ({len(errors)})</div>"
@@ -1178,7 +1315,9 @@ class SettingsScreen(QWidget):
 
             sections = []
             created_section = format_section(_("results.registered"), created, "✅")
-            already_exists_section = format_section(_("results.already_exist"), already_exists, "⚠️")
+            already_exists_section = format_section(
+                _("results.already_exist"), already_exists, "⚠️"
+            )
             if created_section:
                 sections.append(created_section)
             if already_exists_section:
@@ -1205,7 +1344,9 @@ class SettingsScreen(QWidget):
                 html,
             )
         except Exception as error:
-            LOGGER.exception("Failed to register users on server for config: %s", self.config_path)
+            LOGGER.exception(
+                "Failed to register users on server for config: %s", self.config_path
+            )
             QMessageBox.warning(
                 self,
                 _("dialogs.register_error"),
@@ -1266,8 +1407,7 @@ class SettingsScreen(QWidget):
         text_box.setReadOnly(True)
         text_box.setHtml(details_html)
         text_box.setStyleSheet(
-            text_box.styleSheet()
-            + "QScrollBar:vertical { width: 12px; }"
+            text_box.styleSheet() + "QScrollBar:vertical { width: 12px; }"
         )
 
         close_button = QPushButton(_("buttons.close"))
@@ -1288,7 +1428,9 @@ class SettingsScreen(QWidget):
             LOGGER.info("Starting chat transfer for config: %s", self.config_path)
             self.save_form_to_toml()
         except Exception as error:
-            LOGGER.exception("Failed to save config before chat transfer: %s", self.config_path)
+            LOGGER.exception(
+                "Failed to save config before chat transfer: %s", self.config_path
+            )
             QMessageBox.warning(
                 self,
                 _("dialogs.save_error"),
@@ -1366,7 +1508,9 @@ class SettingsScreen(QWidget):
         status_label.setStyleSheet("font-size: 13px; color: #5E7486;")
 
         counter_label = QLabel(_("progress.messages", current=0, total=0))
-        counter_label.setStyleSheet("font-size: 13px; color: #163047; font-weight: 600;")
+        counter_label.setStyleSheet(
+            "font-size: 13px; color: #163047; font-weight: 600;"
+        )
 
         progress_bar = QProgressBar()
         progress_bar.setRange(0, 0)
@@ -1407,7 +1551,9 @@ class SettingsScreen(QWidget):
             if total > 0:
                 progress_bar.setRange(0, total)
                 progress_bar.setValue(current)
-                counter_label.setText(_("progress.messages", current=current, total=total))
+                counter_label.setText(
+                    _("progress.messages", current=current, total=total)
+                )
                 status_label.setText(_("progress.transferring"))
 
         def request_cancel():
@@ -1462,7 +1608,11 @@ class SettingsScreen(QWidget):
             return
 
         if state["error"]:
-            LOGGER.error("Chat transfer failed for config %s: %s", self.config_path, state["error"])
+            LOGGER.error(
+                "Chat transfer failed for config %s: %s",
+                self.config_path,
+                state["error"],
+            )
             QMessageBox.warning(
                 self,
                 _("dialogs.transfer_error"),
@@ -1483,7 +1633,9 @@ class SettingsScreen(QWidget):
         if chat_id:
             lines.append(_("results.chat_id", id=chat_id))
 
-        LOGGER.info("Chat transfer completed successfully for config: %s", self.config_path)
+        LOGGER.info(
+            "Chat transfer completed successfully for config: %s", self.config_path
+        )
         QMessageBox.information(
             self,
             _("dialogs.transfer_complete"),
@@ -1514,18 +1666,14 @@ class SettingsScreen(QWidget):
     def _create_hint_label(self, text: str) -> QLabel:
         label = QLabel(text)
         label.setWordWrap(True)
-        label.setStyleSheet(
-            "font-size: 13px; color: #5E7486; background: transparent;"
-        )
+        label.setStyleSheet("font-size: 13px; color: #5E7486; background: transparent;")
         return label
 
     def _create_inline_warning_label(self, text: str) -> QLabel:
         label = QLabel(text)
         label.setWordWrap(False)
         label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        label.setStyleSheet(
-            "font-size: 10px; color: #F67A1E; background: transparent;"
-        )
+        label.setStyleSheet("font-size: 10px; color: #F67A1E; background: transparent;")
         label.hide()
         return label
 
@@ -1851,7 +1999,9 @@ class SettingsScreen(QWidget):
         )
 
     def _get_available_timezones(self) -> list[str]:
-        return sorted(bytes(tz).decode("utf-8") for tz in QTimeZone.availableTimeZoneIds())
+        return sorted(
+            bytes(tz).decode("utf-8") for tz in QTimeZone.availableTimeZoneIds()
+        )
 
     def _build_ui(self):
         self.setStyleSheet("background-color: #F6FAFC;")
@@ -1895,11 +2045,15 @@ class SettingsScreen(QWidget):
             "font-size: 20px; font-weight: 800; color: #163047; background: transparent;"
         )
 
-        source_badge = QLabel(_("settings.source_badge", path=self.folder_path, config=self.config_path))
+        source_badge = QLabel(
+            _("settings.source_badge", path=self.folder_path, config=self.config_path)
+        )
         source_badge.setWordWrap(False)
         source_badge.setMinimumWidth(520)
-        source_badge.setMaximumWidth(1180-100)
-        source_badge.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        source_badge.setMaximumWidth(1180 - 100)
+        source_badge.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         source_badge.setStyleSheet(
             """
             QLabel {
@@ -1917,18 +2071,23 @@ class SettingsScreen(QWidget):
         title_row = QHBoxLayout()
         title_row.setSpacing(10)
         title_row.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-        title_row.addWidget(title, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        title_row.addWidget(
+            title, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
         title_row.addSpacing(4)
-        title_row.addWidget(source_badge, 1, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        title_row.addWidget(
+            source_badge, 1, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
 
-        
         header_layout.addLayout(title_row)
 
         media_card = self._create_card("mediaCard")
         media_layout = QVBoxLayout(media_card)
         media_layout.setContentsMargins(18, 16, 18, 16)
         media_layout.setSpacing(8)
-        media_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        media_card.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+        )
 
         media_title = self._create_section_title(_("media.title"))
 
@@ -2004,8 +2163,14 @@ class SettingsScreen(QWidget):
         voice_header_row = QHBoxLayout()
         voice_header_row.setContentsMargins(0, 0, 0, 0)
         voice_header_row.setSpacing(6)
-        voice_header_row.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        voice_header_row.addWidget(self.voice_checkbox, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        voice_header_row.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
+        voice_header_row.addWidget(
+            self.voice_checkbox,
+            0,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+        )
         voice_header_row.addStretch()
 
         cover_row = QHBoxLayout()
@@ -2027,14 +2192,22 @@ class SettingsScreen(QWidget):
         stickers_header_row = QHBoxLayout()
         stickers_header_row.setContentsMargins(0, 0, 0, 0)
         stickers_header_row.setSpacing(6)
-        stickers_header_row.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        stickers_header_row.addWidget(self.stickers_checkbox, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        stickers_header_row.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
+        stickers_header_row.addWidget(
+            self.stickers_checkbox,
+            0,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+        )
         stickers_header_row.addStretch()
 
         stickers_note = self._create_hint_label(_("media.stickers_note"))
 
         stickers_column.addLayout(stickers_header_row)
-        stickers_column.addWidget(self.stickers_info_label, 0, Qt.AlignmentFlag.AlignLeft)
+        stickers_column.addWidget(
+            self.stickers_info_label, 0, Qt.AlignmentFlag.AlignLeft
+        )
         stickers_column.addWidget(stickers_note)
         stickers_column.addStretch()
 
@@ -2068,7 +2241,9 @@ class SettingsScreen(QWidget):
         chat_layout = QVBoxLayout(chat_card)
         chat_layout.setContentsMargins(18, 16, 18, 16)
         chat_layout.setSpacing(8)
-        chat_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        chat_card.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+        )
 
         chat_title = self._create_section_title(_("chat.title"))
 
@@ -2090,7 +2265,9 @@ class SettingsScreen(QWidget):
         self.chat_type_combo.addItem(_("chat.type_supergroup"), "supergroup")
         self._apply_input_style(self.chat_type_combo)
 
-        self.supergroup_template_label = self._create_hint_label(_("chat.template_label"))
+        self.supergroup_template_label = self._create_hint_label(
+            _("chat.template_label")
+        )
         self.supergroup_template_input = QLineEdit("{topic} | {supergroup}")
         self._apply_input_style(self.supergroup_template_input)
 
@@ -2128,7 +2305,9 @@ class SettingsScreen(QWidget):
                 str(self.chat_type_combo.currentData() or "")
             )
         )
-        self._update_supergroup_template_state(str(self.chat_type_combo.currentData() or ""))
+        self._update_supergroup_template_state(
+            str(self.chat_type_combo.currentData() or "")
+        )
 
         chat_layout.addWidget(chat_title)
         chat_layout.addSpacing(2)
@@ -2150,7 +2329,9 @@ class SettingsScreen(QWidget):
         bot_token_label = self._create_hint_label(_("telegram_bot.token_label"))
         self.telegram_bot_token_input = QLineEdit()
         self._apply_input_style(self.telegram_bot_token_input)
-        self.telegram_bot_token_input.setPlaceholderText(_("telegram_bot.token_placeholder"))
+        self.telegram_bot_token_input.setPlaceholderText(
+            _("telegram_bot.token_placeholder")
+        )
         bot_token_column.addWidget(bot_token_label)
         bot_token_column.addWidget(self.telegram_bot_token_input)
 
@@ -2159,7 +2340,9 @@ class SettingsScreen(QWidget):
         bot_chat_id_label = self._create_hint_label(_("telegram_bot.chat_id_label"))
         self.telegram_bot_chat_id_input = QLineEdit()
         self._apply_input_style(self.telegram_bot_chat_id_input)
-        self.telegram_bot_chat_id_input.setPlaceholderText(_("telegram_bot.chat_id_placeholder"))
+        self.telegram_bot_chat_id_input.setPlaceholderText(
+            _("telegram_bot.chat_id_placeholder")
+        )
         bot_chat_id_column.addWidget(bot_chat_id_label)
         bot_chat_id_column.addWidget(self.telegram_bot_chat_id_input)
 
@@ -2169,29 +2352,37 @@ class SettingsScreen(QWidget):
         self.telegram_bot_enrich_checkbox = QCheckBox(_("telegram_bot.enrich"))
         self._apply_checkbox_style(self.telegram_bot_enrich_checkbox)
 
-        self.telegram_bot_enrich_hint = QLabel(
-            _("telegram_bot.enrich_hint")
-        )
+        self.telegram_bot_enrich_hint = QLabel(_("telegram_bot.enrich_hint"))
         self.telegram_bot_enrich_hint.setWordWrap(True)
-        self.telegram_bot_enrich_hint.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.telegram_bot_enrich_hint.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         self.telegram_bot_enrich_hint.setStyleSheet(
             "font-size: 11px; color: #F67A1E; background: transparent;"
         )
         self.telegram_bot_enrich_hint.hide()
-        self.telegram_bot_enrich_checkbox.toggled.connect(self.telegram_bot_enrich_hint.setVisible)
-        self.telegram_bot_enrich_checkbox.toggled.connect(self._update_telegram_bot_controls_state)
+        self.telegram_bot_enrich_checkbox.toggled.connect(
+            self.telegram_bot_enrich_hint.setVisible
+        )
+        self.telegram_bot_enrich_checkbox.toggled.connect(
+            self._update_telegram_bot_controls_state
+        )
 
         telegram_bot_options = QVBoxLayout()
         telegram_bot_options.setContentsMargins(0, 2, 0, 0)
         telegram_bot_options.setSpacing(4)
-        telegram_bot_options.addWidget(self.telegram_bot_enrich_checkbox, 0, Qt.AlignmentFlag.AlignLeft)
+        telegram_bot_options.addWidget(
+            self.telegram_bot_enrich_checkbox, 0, Qt.AlignmentFlag.AlignLeft
+        )
 
         telegram_bot_layout.addWidget(telegram_bot_title)
         telegram_bot_layout.addSpacing(2)
         telegram_bot_layout.addLayout(telegram_bot_options)
         telegram_bot_layout.addLayout(telegram_bot_row)
         telegram_bot_layout.addWidget(self.telegram_bot_enrich_hint)
-        self._update_telegram_bot_controls_state(self.telegram_bot_enrich_checkbox.isChecked())
+        self._update_telegram_bot_controls_state(
+            self.telegram_bot_enrich_checkbox.isChecked()
+        )
 
         users_card = self._create_card("usersCard")
         users_layout = QVBoxLayout(users_card)
@@ -2204,7 +2395,9 @@ class SettingsScreen(QWidget):
 
         users_header_row = QHBoxLayout()
         users_header_row.setSpacing(16)
-        users_header_row.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        users_header_row.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+        )
 
         users_text_column = QVBoxLayout()
         users_text_column.setSpacing(4)
@@ -2212,9 +2405,17 @@ class SettingsScreen(QWidget):
         users_title_row = QHBoxLayout()
         users_title_row.setContentsMargins(0, 0, 0, 0)
         users_title_row.setSpacing(6)
-        users_title_row.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        users_title_row.addWidget(users_title, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        users_title_row.addWidget(self.users_info_button, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        users_title_row.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
+        users_title_row.addWidget(
+            users_title, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
+        users_title_row.addWidget(
+            self.users_info_button,
+            0,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,
+        )
         users_title_row.addStretch(1)
 
         users_text_column.addLayout(users_title_row)
@@ -2222,7 +2423,9 @@ class SettingsScreen(QWidget):
         users_controls_row = QHBoxLayout()
         users_controls_row.setContentsMargins(0, 0, 0, 0)
         users_controls_row.setSpacing(10)
-        users_controls_row.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        users_controls_row.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+        )
 
         password_column = QVBoxLayout()
         password_column.setContentsMargins(0, 6, 0, 0)
@@ -2232,20 +2435,26 @@ class SettingsScreen(QWidget):
         password_row = QHBoxLayout()
         password_row.setContentsMargins(0, 0, 0, 0)
         password_row.setSpacing(8)
-        password_row.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        password_row.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
 
         password_label = self._create_hint_label(_("users.password_label"))
         password_label.setWordWrap(False)
         self.registration_password_input = QLineEdit()
         self._apply_input_style(self.registration_password_input)
-        self.registration_password_input.setPlaceholderText(_("users.password_placeholder"))
+        self.registration_password_input.setPlaceholderText(
+            _("users.password_placeholder")
+        )
         self.registration_password_input.setFixedWidth(150)
         self.registration_password_input.setFixedHeight(30)
         self.registration_password_input.setStyleSheet(
             self.registration_password_input.styleSheet()
             + "QLineEdit { min-height: 30px; font-size: 12px; padding: 0 10px; }"
         )
-        self.registration_password_input.textChanged.connect(self._apply_registration_password_to_table)
+        self.registration_password_input.textChanged.connect(
+            self._apply_registration_password_to_table
+        )
         email_domain_label = self._create_hint_label(_("users.email_domain_label"))
         email_domain_label.setWordWrap(False)
 
@@ -2260,12 +2469,27 @@ class SettingsScreen(QWidget):
             + "QLineEdit { min-height: 30px; font-size: 12px; padding: 0 10px; }"
         )
 
-
-        password_row.addWidget(password_label, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        password_row.addWidget(self.registration_password_input, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        password_row.addWidget(
+            password_label,
+            0,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+        )
+        password_row.addWidget(
+            self.registration_password_input,
+            0,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+        )
         password_row.addSpacing(8)
-        password_row.addWidget(email_domain_label, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        password_row.addWidget(self.registration_email_domain_input, 0, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        password_row.addWidget(
+            email_domain_label,
+            0,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+        )
+        password_row.addWidget(
+            self.registration_email_domain_input,
+            0,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+        )
         password_row.addStretch(1)
 
         password_column.addLayout(password_row)
@@ -2274,7 +2498,9 @@ class SettingsScreen(QWidget):
 
         user_actions_layout = QHBoxLayout()
         user_actions_layout.setSpacing(8)
-        user_actions_layout.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
+        user_actions_layout.setAlignment(
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop
+        )
 
         self.parse_users_button = self._create_icon_button(
             _("users.refresh_tooltip"),
@@ -2298,7 +2524,9 @@ class SettingsScreen(QWidget):
         users_header_row.addLayout(user_actions_layout, 0)
 
         self.users_table = ResizableTable(0, 7)
-        self.users_table.setHorizontalHeader(MutedHeaderView(Qt.Orientation.Horizontal, self.users_table))
+        self.users_table.setHorizontalHeader(
+            MutedHeaderView(Qt.Orientation.Horizontal, self.users_table)
+        )
         self.users_table.setHorizontalHeaderLabels(
             [
                 _("users.headers.telegram_id"),
@@ -2319,9 +2547,15 @@ class SettingsScreen(QWidget):
             | QTableWidget.EditTrigger.EditKeyPressed
             | QTableWidget.EditTrigger.SelectedClicked
         )
-        self.users_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.users_table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.users_table.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustIgnored)
+        self.users_table.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
+        self.users_table.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
+        self.users_table.setSizeAdjustPolicy(
+            QAbstractScrollArea.SizeAdjustPolicy.AdjustIgnored
+        )
         self.users_table.setWordWrap(False)
         self.users_table.setMinimumHeight(520)
         self.users_table.setStyleSheet(
@@ -2376,11 +2610,12 @@ class SettingsScreen(QWidget):
         self.users_table.setColumnWidth(5, 170)  # Имя в Telegram
         self.users_table.setColumnWidth(6, 180)  # Юзернейм (@)
 
-        self.users_table.horizontalHeader().sectionResized.connect(self._on_user_table_section_resized)
+        self.users_table.horizontalHeader().sectionResized.connect(
+            self._on_user_table_section_resized
+        )
         QTimer.singleShot(0, self._resize_user_table_columns)
 
         users_layout.addLayout(users_header_row)
-
 
         users_layout.addWidget(self.users_table)
 
@@ -2580,11 +2815,12 @@ class SettingsScreen(QWidget):
             checkbox.toggled.connect(self._mark_dirty)
 
         self.users_table.itemChanged.connect(self._mark_dirty)
-        self.users_table.itemChanged.connect(lambda *_: self._apply_user_table_visuals())
+        self.users_table.itemChanged.connect(
+            lambda *_: self._apply_user_table_visuals()
+        )
 
         shell_layout.addWidget(header_card)
         shell_layout.addWidget(self.tabs)
-
 
         root_layout.addWidget(settings_shell, 1)
         root_layout.addWidget(footer_card)
@@ -2604,7 +2840,6 @@ class MainWindow(QMainWindow):
         raise RuntimeError("В parse_users.py не найдена функция parse_users")
 
     def _run_add_users(self, config_path: str):
-
 
         for attr_name in ("register_users", "main"):
             candidate = getattr(add_users_to_server, attr_name, None)
@@ -2817,7 +3052,8 @@ default_password = ""
         super().__init__()
         self.setWindowIcon(QIcon(get_resource_path("assets/icon.png")))
         self.setWindowTitle(_("app.title"))
-        self.setMinimumSize(1200, 820)
+        self.setMinimumSize(530, 560)
+        self.resize(750, 700)
 
         app_font = QFont("Roboto", 10)
         self.setFont(app_font)
@@ -2838,7 +3074,9 @@ default_password = ""
         result_file = Path(folder_path) / "result.json"
 
         if not result_file.exists():
-            LOGGER.warning("Selected folder does not contain result.json: %s", folder_path)
+            LOGGER.warning(
+                "Selected folder does not contain result.json: %s", folder_path
+            )
             QMessageBox.warning(
                 self,
                 _("first_screen.invalid_folder"),
@@ -2853,7 +3091,14 @@ default_password = ""
             if created or not self._config_has_users(config_path):
                 LOGGER.info("Using config path: %s", config_path)
                 self._run_parse_users_with_progress(str(config_path))
-        except (OSError, json.JSONDecodeError, ValueError, RuntimeError, FileNotFoundError, tomllib.TOMLDecodeError) as error:
+        except (
+            OSError,
+            json.JSONDecodeError,
+            ValueError,
+            RuntimeError,
+            FileNotFoundError,
+            tomllib.TOMLDecodeError,
+        ) as error:
             LOGGER.exception("Failed to prepare config for folder: %s", folder_path)
             QMessageBox.warning(
                 self,
